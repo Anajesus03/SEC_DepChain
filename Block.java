@@ -17,7 +17,7 @@ public class Block {
 
     }
 
-    public String getMessageHash() {
+    public String getMessageHash(String data) {
         return MessageHash;
     }
 
