@@ -1,6 +1,5 @@
 import java.util.Date;
 import java.util.ArrayList;
-import SEC_DepChain.cryptoClass;
 
 public class Block {
     private String MessageHash;

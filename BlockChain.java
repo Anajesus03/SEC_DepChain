@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Date;
-import SEC_DepChain.cryptoClass;
 
 public class BlockChain {
     public static ArrayList<Block> blockchain = new ArrayList<Block>();
