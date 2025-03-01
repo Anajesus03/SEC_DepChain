@@ -23,6 +23,10 @@ public class networkClass {
         return packet;
     }
 
+    public DatagramSocket getSocket() {
+        return socket;
+    }
+
     public void closeSocket() {
         socket.close();
     }
