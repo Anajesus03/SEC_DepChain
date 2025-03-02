@@ -15,6 +15,5 @@ class BFTConsensus {
 
     public void decide(String request) {
         System.out.println("[BFT] Consensus reached. Adding to blockchain...");
-        this.block.getMessageHash(request);
     }
 }

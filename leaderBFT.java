@@ -1,6 +1,7 @@
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.PublicKey;
 
 
 public class leaderBFT {
@@ -8,12 +9,13 @@ public class leaderBFT {
     private List<InetAddress> clients;
     private List<Integer> clientsPorts;
     private BlockChain blockchain;
+    private PublicKey leaderPublicKey;
 
     public leaderBFT(networkClass network, cryptoClass crypto, List<InetAddress> clients, List<Integer> clientsPorts) {
         this.apl = new AuthenticatedPerfectLink(network, crypto);
         this.clients = clients;
         this.clientsPorts = clientsPorts;
-        this.blockchain = new BlockChain();
+        this.blockchain = new BlockChain(leaderPublicKey);
     }
 
     public void propose(String value) throws Exception{
