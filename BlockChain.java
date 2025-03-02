@@ -1,53 +1,83 @@
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class BlockChain {
-    public static ArrayList<Block> blockchain = new ArrayList<Block>();
+    private ArrayList<Block> blockchain;
+    private PublicKey leaderPublicKey;
 
-    public static void main(String[] args) {
-        blockchain.add(new Block("Genesis Block", "0"));
-        System.out.println("Trying to Mine block 1... ");
-        blockchain.get(0).mineBlock(5);
-
-        blockchain.add(new Block("Second Block", blockchain.get(blockchain.size() - 1).getMessageHash()));
-        System.out.println("Trying to Mine block 2... ");
-        blockchain.get(1).mineBlock(5);
-
-        blockchain.add(new Block("Third Block", blockchain.get(blockchain.size() - 1).getMessageHash()));
-        System.out.println("Trying to Mine block 3... ");
-        blockchain.get(2).mineBlock(5);
-
-        System.out.println("\nBlockchain is Valid: " + isChainValid());
-
-        String blockchainJson = StringUtil.getJson(blockchain);
-        System.out.println("\nThe block chain: ");
-        System.out.println(blockchainJson);
+    public BlockChain(PublicKey leaderPublicKey) {
+        this.blockchain = new ArrayList<>();
+        this.leaderPublicKey = leaderPublicKey;
+        blockchain.add(createGenesisBlock());
     }
 
-    public static Boolean isChainValid() {
-        Block currentBlock;
-        Block previousBlock;
-        String hashTarget = new String(new char[5]).replace('\0', '0');
+    // Create Genesis Block
+    private Block createGenesisBlock() {
+        try {
+            return new Block("Genesis Block", "0", null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        for (int i = 1; i < blockchain.size(); i++) {
-            currentBlock = blockchain.get(i);
-            previousBlock = blockchain.get(i - 1);
+    // Add a new block to the blockchain
+    public boolean appendBlock(Block newBlock) {
+        if (isBlockValid(newBlock, blockchain.get(blockchain.size() - 1))) {
+            blockchain.add(newBlock);
+            System.out.println("Block successfully appended.");
+            return true;
+        } else {
+            System.out.println("Invalid block!");
+            return false;
+        }
+    }
 
-            if (!currentBlock.getMessageHash().equals(currentBlock.calculateHash())) {
-                System.out.println("Current Hashes not equal");
+    // Check if a block is valid
+    public boolean isBlockValid(Block newBlock, Block previousBlock) {
+        try {
+            if (!previousBlock.getHash().equals(newBlock.getPreviousHash())) {
+                System.out.println("Invalid previous hash.");
                 return false;
             }
 
-            if (!previousBlock.getMessageHash().equals(currentBlock.getPreviousMessageHash())) {
-                System.out.println("Previous Hashes not equal");
+            if (!newBlock.getHash().equals(Block.applySha256(newBlock.getPreviousHash() + Long.toString(newBlock.getTimeStamp()) + newBlock.getData()))) {
+                System.out.println("Invalid block hash.");
                 return false;
             }
 
-            if (!currentBlock.getMessageHash().substring(0, 5).equals(hashTarget)) {
-                System.out.println("This block hasn't been mined");
+            if (!newBlock.verifyBlockSignature(leaderPublicKey)) {
+                System.out.println("Invalid block signature.");
                 return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Check if a block exists in the blockchain
+    public boolean checkBlock(String blockHash) {
+        for (Block block : blockchain) {
+            if (block.getHash().equals(blockHash)) {
+                return true;
             }
         }
-        return true;
+        return false;
+    }
+
+    
+    public void printBlockchain() {
+        for (Block block : blockchain) {
+            System.out.println("Block Hash: " + block.getHash());
+            System.out.println("Previous Hash: " + block.getPreviousHash());
+            System.out.println("Data: " + block.getData());
+            System.out.println("Timestamp: " + block.getTimeStamp());
+            System.out.println("Signature: " + block.getSignature());
+            System.out.println("=====================================");
+        }
     }
 }
