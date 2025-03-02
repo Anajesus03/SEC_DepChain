@@ -7,13 +7,13 @@ public class leaderBFT {
     private AuthenticatedPerfectLink apl;
     private List<InetAddress> clients;
     private List<Integer> clientsPorts;
-    private List<String> blockchain;
+    private BlockChain blockchain;
 
     public leaderBFT(networkClass network, cryptoClass crypto, List<InetAddress> clients, List<Integer> clientsPorts) {
         this.apl = new AuthenticatedPerfectLink(network, crypto);
         this.clients = clients;
         this.clientsPorts = clientsPorts;
-        this.blockchain = new ArrayList<>();
+        this.blockchain = new BlockChain();
     }
 
     public void propose(String value) throws Exception{
@@ -59,7 +59,7 @@ public class leaderBFT {
 
     }
 
-    public List<String> getBlockchain() {
+    public BlockChain getBlockchain() {
         return blockchain;
     }
     
