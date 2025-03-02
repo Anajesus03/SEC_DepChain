@@ -7,14 +7,14 @@ public class ClientBFT {
     private AuthenticatedPerfectLink apl;
     private InetAddress leaderAddress;
     private int leaderPort;
-    private List<String> blockchain;
+    private BlockChain blockchain;
 
     public ClientBFT(String name, networkClass network, cryptoClass crypto, InetAddress leaderAddress, int leaderPort) {
         this.name = name;
         this.apl = new AuthenticatedPerfectLink(network, crypto);
         this.leaderAddress = leaderAddress;
         this.leaderPort = leaderPort;
-        this.blockchain = new ArrayList<>();
+        this.blockchain = new BlockChain();
         System.out.println("[BFT Client] " + name + " initialized.");
     }
 
@@ -71,7 +71,7 @@ public class ClientBFT {
         }
     }
 
-    public List<String> getBlockchain() {
+    public BlockChain getBlockchain() {
         return blockchain;
     }
 
