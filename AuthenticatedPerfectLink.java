@@ -9,6 +9,7 @@ public class AuthenticatedPerfectLink {
     private cryptoClass crypto;
     private int sequenceNumbers=0; // AP2: No duplication
     private Set<Integer> receivedSequenceNumbers = new HashSet<>(); 
+    private static final int MAX_UDP_SIZE = 65507; // Maximum size of a UDP packet
 
     public AuthenticatedPerfectLink(networkClass networkClass, cryptoClass crypto) {
         this.networkClass = networkClass;
@@ -31,6 +32,11 @@ public class AuthenticatedPerfectLink {
         System.arraycopy(signature, 0, messageWithSignature, dataWithSequenceNumber.length, signature.length);
 
         boolean receivedACK = false; // AP1: Reliable delivery
+
+        // checks if the message is too large to be sent
+        if (messageWithSignature.length > MAX_UDP_SIZE) {
+            throw new Exception("Message too large");
+        }
 
         while(!receivedACK) {
             System.out.println("[Sender] Sending message to " + dest.getHostAddress() + ":" + port);
