@@ -1,6 +1,6 @@
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientBFT {
@@ -8,15 +8,15 @@ public class ClientBFT {
     private AuthenticatedPerfectLink apl;
     private InetAddress leaderAddress;
     private int leaderPort;
-    private BlockChain blockchain;
-    private PublicKey leaderPublicKey;
+    private List<String> blockchain;
+    
 
     public ClientBFT(String name, networkClass network, cryptoClass crypto, InetAddress leaderAddress, int leaderPort, PublicKey leaderPublicKey) {
         this.name = name;
         this.apl = new AuthenticatedPerfectLink(network, crypto);
         this.leaderAddress = leaderAddress;
         this.leaderPort = leaderPort;
-        this.blockchain = new BlockChain(leaderPublicKey);
+        this.blockchain = new ArrayList<>();
         System.out.println("[BFT Client] " + name + " initialized.");
     }
 
@@ -74,7 +74,7 @@ public class ClientBFT {
         }
     }
 
-    public BlockChain getBlockchain() {
+    public List<String> getBlockchain() {
         return blockchain;
     }
 
