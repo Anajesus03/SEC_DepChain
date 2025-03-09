@@ -1,3 +1,4 @@
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,15 +21,32 @@ public class ClientBFT extends Thread {
     }
 
     @Override
-    public void run() {
-        System.out.println(name + " started on port " + 4000);
-        try {
-            Thread.sleep(3000); // Simulate some work
-            System.out.println(name + " is working...");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+public void run() {
+    System.out.println(name + " started on port " + 4000);
+    try {
+        Thread.sleep(3000); // Simulate some work
+        System.out.println(name + " is working...");
+
+        // Send message to all servers
+        int i = 0;
+        for (AuthenticatedPerfectLink link : apl) {
+            try {
+
+                InetAddress serverAddress = InetAddress.getByName("localhost"); // Assuming all servers are on localhost
+                int serverPort = 5000+i; // Adjust if servers are on different ports
+                System.out.println(name + " is sending: 'Hello every nyan'");
+                link.sendMessage("Hello every nyan", serverAddress, serverPort);
+                i++;
+            } catch (Exception e) {
+                System.err.println("Error sending message to server: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
+    } catch (InterruptedException e) {
+        e.printStackTrace();
     }
+}
+
 /* 
     // Listen for messages from the leader
     public void startListening() {

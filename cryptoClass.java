@@ -1,6 +1,5 @@
 import java.security.*;
 
-
 public class cryptoClass {
     private final PrivateKey privateKey;
     private final PublicKey publicKey;

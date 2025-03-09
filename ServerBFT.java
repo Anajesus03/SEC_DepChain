@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerBFT extends Thread {
-    private String name;
-    private AuthenticatedPerfectLink apl;
-    private cryptoClass leader;
-    private List<String> blockchain;
-    private int port;
+    private String name;                      // Server name (e.g., "A", "B", "C", "D")
+    private AuthenticatedPerfectLink apl;     // For secure communication
+    private cryptoClass leader;              // Crypto instance for leader communication
+    private List<String> blockchain;          // Simulated blockchain (message storage)
+    private int port;                         // Server's port
 
     public ServerBFT(String name, networkClass network, cryptoClass leader, int port) {
         this.name = name;
@@ -16,17 +16,28 @@ public class ServerBFT extends Thread {
         this.leader = leader;
         this.blockchain = new ArrayList<>();
         this.port = port;
-        System.out.println("[BFT Server] " + name + " initialized.");
+        System.out.println("[BFT Server] " + name + " initialized on port " + port);
     }
 
     @Override
     public void run() {
-        System.out.println(name + " started on port " + this.port);
+        System.out.println("[BFT Server] " + name + " started and listening on port " + this.port);
+
         try {
-            Thread.sleep(3000); // Simulate some work
-            System.out.println(name + " is working...");
-        } catch (InterruptedException e) {
+            while (true) {
+                // Listen for incoming messages
+                String message = apl.receiveMessage();
+                System.out.println("[" + name + "] Received message: " + message);
+
+                // Store message in the blockchain (log of messages)
+                blockchain.add(message);
+                System.out.println("[" + name + "] Updated Blockchain: " + blockchain);
+            }
+        } catch (Exception e) {
+            System.err.println("[" + name + "] Error receiving message: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            apl.close();  // Ensure socket is closed when thread ends
         }
     }
 }
