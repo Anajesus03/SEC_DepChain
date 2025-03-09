@@ -28,6 +28,7 @@ public class ServerApp {
             cryptoClass cryptoClient_ServerB = new cryptoClass(keyPairClient.getPrivate(), keyPairServerB.getPublic());
             cryptoClass cryptoClient_ServerC = new cryptoClass(keyPairClient.getPrivate(), keyPairServerC.getPublic());
             cryptoClass cryptoClient_ServerD = new cryptoClass(keyPairClient.getPrivate(), keyPairServerD.getPublic());
+            cryptoClass cryptoClient_Leader = new cryptoClass(keyPairClient.getPrivate(), keyPairLeader.getPublic());
 
             cryptoClass cryptoServerA_Leader = new cryptoClass(keyPairServerA.getPrivate(), keyPairLeader.getPublic());
             cryptoClass cryptoServerB_Leader = new cryptoClass(keyPairServerB.getPrivate(), keyPairLeader.getPublic());
@@ -41,7 +42,7 @@ public class ServerApp {
 
             // Store crypto instances in lists
             List<cryptoClass> cryptoServerList = Arrays.asList(cryptoServerA_Leader, cryptoServerB_Leader, cryptoServerC_Leader, cryptoServerD_Leader);
-            List<cryptoClass> cryptoClientList = Arrays.asList(cryptoClient_ServerA, cryptoClient_ServerB, cryptoClient_ServerC, cryptoClient_ServerD);
+            List<cryptoClass> cryptoClientList = Arrays.asList(cryptoClient_ServerA, cryptoClient_ServerB, cryptoClient_ServerC, cryptoClient_ServerD, cryptoClient_Leader);
             List<cryptoClass> cryptoLeaderList = Arrays.asList(cryptoLeader_ServerA, cryptoLeader_ServerB, cryptoLeader_ServerC, cryptoLeader_ServerD);
 
             // Start the Client

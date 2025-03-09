@@ -11,6 +11,7 @@ public class ClientBFT extends Thread {
     public ClientBFT(String name, networkClass network, List<cryptoClass> servers) {
         this.name = name;
         this.servers = servers;
+        this.apl = new ArrayList<>();
         for (int i = 0; i < this.servers.size(); i++) {
             apl.add(new AuthenticatedPerfectLink(network, servers.get(i)));
         }

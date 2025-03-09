@@ -12,6 +12,7 @@ public class leaderBFT extends Thread {
 
     public leaderBFT(String name,networkClass network, List<cryptoClass> servers) {
         this.servers = servers;
+        this.apl = new ArrayList<>();
         for (int i = 0; i < servers.size(); i++) {
             this.apl.add(new AuthenticatedPerfectLink(network, servers.get(i)));
         }
