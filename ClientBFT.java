@@ -1,25 +1,34 @@
-import java.net.InetAddress;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientBFT {
+public class ClientBFT extends Thread {
     private String name;
-    private AuthenticatedPerfectLink apl;
-    private InetAddress leaderAddress;
-    private int leaderPort;
+    private List<AuthenticatedPerfectLink> apl;
+    private List<cryptoClass> servers;
     private List<String> blockchain;
     
 
-    public ClientBFT(String name, networkClass network, cryptoClass crypto, InetAddress leaderAddress, int leaderPort, PublicKey leaderPublicKey) {
+    public ClientBFT(String name, networkClass network, List<cryptoClass> servers) {
         this.name = name;
-        this.apl = new AuthenticatedPerfectLink(network, crypto);
-        this.leaderAddress = leaderAddress;
-        this.leaderPort = leaderPort;
+        this.servers = servers;
+        for (int i = 0; i < this.servers.size(); i++) {
+            apl.add(new AuthenticatedPerfectLink(network, servers.get(i)));
+        }
         this.blockchain = new ArrayList<>();
         System.out.println("[BFT Client] " + name + " initialized.");
     }
 
+    @Override
+    public void run() {
+        System.out.println(name + " started on port " + 4000);
+        try {
+            Thread.sleep(3000); // Simulate some work
+            System.out.println(name + " is working...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+/* 
     // Listen for messages from the leader
     public void startListening() {
         System.out.println("[Client " + name + "] Listening for messages...");
@@ -73,12 +82,15 @@ public class ClientBFT {
             System.out.println("[Client " + name + "] Duplicate decision ignored.");
         }
     }
+*/
 
     public List<String> getBlockchain() {
         return blockchain;
     }
 
     public void close() {
-        apl.close();
+        for (AuthenticatedPerfectLink link : apl) {
+            link.close();
+        }
     }
 }

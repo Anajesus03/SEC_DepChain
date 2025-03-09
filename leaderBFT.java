@@ -3,20 +3,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class leaderBFT {
-    private AuthenticatedPerfectLink apl;
-    private List<InetAddress> clients;
-    private List<Integer> clientsPorts;
+public class leaderBFT extends Thread {
+    private List<AuthenticatedPerfectLink> apl;
+    private String name;
+    private List<cryptoClass> servers;
     private List<String> blockchain;
     
 
-    public leaderBFT(networkClass network, cryptoClass crypto, List<InetAddress> clients, List<Integer> clientsPorts) {
-        this.apl = new AuthenticatedPerfectLink(network, crypto);
-        this.clients = clients;
-        this.clientsPorts = clientsPorts;
+    public leaderBFT(String name,networkClass network, List<cryptoClass> servers) {
+        this.servers = servers;
+        for (int i = 0; i < servers.size(); i++) {
+            this.apl.add(new AuthenticatedPerfectLink(network, servers.get(i)));
+        }
+        this.name = name;
         this.blockchain = new ArrayList<>();
         System.out.println("[BFT Leader] Initialized.");
     }
+
+    @Override
+    public void run() {
+        System.out.println(name + " started on port " + 6000);
+        try {
+            Thread.sleep(3000); // Simulate some work
+            System.out.println(name + " is working...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    /* 
 
     public void propose(String value) throws Exception{
         System.out.println("[Leader] Proposing value: " + value);
@@ -60,7 +74,7 @@ public class leaderBFT {
         }
 
     }
-
+*/
     public List<String> getBlockchain() {
         return blockchain;
     }
