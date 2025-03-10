@@ -46,7 +46,9 @@ public class ServerBFT extends Thread {
             leaderAPL.sendMessage(messageForLeader, leaderAddress, leaderPort);
             
             // Wait for the leader's decision.
+            System.out.println("[" + name + "] Waiting for leader's decision...");
             String decision = leaderAPL.receiveMessage();
+            System.out.println("[" + name + "] Received decision from leader: " + decision);
             blockchain.add(decision);
             System.out.println("[" + name + "] Received decision from leader: " + decision);
         } catch (Exception e) {

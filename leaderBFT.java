@@ -42,8 +42,7 @@ public class leaderBFT extends Thread {
     public void run() {
         System.out.println(name + " started.");
         try {
-            int round = 0;
-            while (round < 1) {
+            while (true) {
                 // Collect messages from servers
                 for (int i = 0; i < apl.size(); i++) {
                     String message = apl.get(i).receiveMessage();
@@ -61,7 +60,6 @@ public class leaderBFT extends Thread {
                     System.out.println("[Leader] Decision made: " + decision);
                     broadcastDecision(decision); // Broadcast decision to all servers
                     cc.clearCondition("append");
-                    round++;
                 }
             }
         } catch (Exception e) {

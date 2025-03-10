@@ -43,7 +43,7 @@ public class AuthenticatedPerfectLink {
             networkClass.sendPacket(dest, port, messageWithSignature);
             try {
                 System.out.println("[Sender] Waiting for ACK...");
-                DatagramPacket ackPacket = receiveACKWithTimeout(1000);
+                DatagramPacket ackPacket = receiveACKWithTimeout(8000);
                 if(ackPacket != null) {
                     receivedACK = true;
                     System.out.println("[Sender] Received ACK from " + ackPacket.getAddress().getHostAddress() + ":" + ackPacket.getPort());

@@ -6,10 +6,8 @@ import java.util.List;
 public class BFTTest {
     public static void main(String[] args) throws Exception {
         // Define ports.
-        int leaderPort = 8000;
-        int serverClientPort = 8001; // Single server receiving client messages.
-        int serverLeaderPort = 8101; // Single server sending to leader.
-        int clientPort = 9000;
+        int leaderPort = 8000;          // Leader listens on this port.
+        int serverClientPort = 7001;    // Server listens for client messages on this port.
 
         // Generate key pairs.
         KeyPair leaderKP = KeyGeneratorUtil.generateRSAKeyPair();
@@ -24,15 +22,14 @@ public class BFTTest {
         // Create network instances.
         networkClass leaderNetwork = new networkClass(leaderPort);
         networkClass serverClientNetwork = new networkClass(serverClientPort);
-        networkClass serverLeaderNetwork = new networkClass(serverLeaderPort);
-        networkClass clientNetwork = new networkClass(clientPort);
+        networkClass clientNetwork = new networkClass(0); // Client uses an ephemeral port.
 
         // Set up server addresses.
         InetAddress localhost = InetAddress.getByName("127.0.0.1");
         List<InetAddress> serverAddresses = new ArrayList<>();
         serverAddresses.add(localhost);
         List<Integer> serverLeaderPorts = new ArrayList<>();
-        serverLeaderPorts.add(serverClientPort);
+        serverLeaderPorts.add(leaderPort); // Server sends to leader on leaderPort.
         List<cryptoClass> serverCryptos = new ArrayList<>();
         serverCryptos.add(serverCrypto);
 
@@ -40,15 +37,15 @@ public class BFTTest {
         leaderBFT leader = new leaderBFT("Leader1", leaderNetwork, serverCryptos, serverAddresses, serverLeaderPorts);
         leader.start();
 
-        // Start single server thread.
-        ServerBFT server = new ServerBFT("server0", serverClientNetwork, serverLeaderNetwork,
+        // Start server thread.
+        ServerBFT server = new ServerBFT("server0", serverClientNetwork, leaderNetwork,
                 serverCrypto, clientCrypto, localhost, leaderPort);
         server.start();
 
-        // Let server start up.
+        // Let server and leader start up.
         Thread.sleep(1000);
 
-        // Client sends a message to the single server.
+        // Client sends a message to the server.
         Client client = new Client(clientNetwork, clientCrypto);
         String clientMessage = "TestMessage";
         System.out.println("[Client] Sending message: " + clientMessage);
@@ -64,4 +61,5 @@ public class BFTTest {
 
         System.exit(0);
     }
+
 }
