@@ -36,4 +36,8 @@ public class cryptoClass {
     public int getSignatureLength() {
         return SIGNATURE_LENGTH;
     }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
 }

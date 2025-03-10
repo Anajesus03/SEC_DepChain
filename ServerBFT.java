@@ -1,43 +1,61 @@
 import java.net.InetAddress;
-import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class ServerBFT extends Thread {
     private String name;                      // Server name (e.g., "A", "B", "C", "D")
-    private AuthenticatedPerfectLink apl;     // For secure communication
-    private cryptoClass leader;              // Crypto instance for leader communication
+    private AuthenticatedPerfectLink clientAPL; // For receiving client messages.
+    private AuthenticatedPerfectLink leaderAPL; // For sending to leader.
+    private cryptoClass serverCrypto;
+    private cryptoClass clientCrypto; // Used to verify client messages.
     private List<String> blockchain;          // Simulated blockchain (message storage)
-    private int port;                         // Server's port
+    private InetAddress leaderAddress;
+    private int leaderPort;                         
 
-    public ServerBFT(String name, networkClass network, cryptoClass leader, int port) {
+    public ServerBFT(String name, networkClass clientNetwork,networkClass leaderNetwork,cryptoClass serverCrypto,cryptoClass clientCrypto, InetAddress leaderAddress, int leaderPort) {
+        this.leaderAddress = leaderAddress;
+        this.leaderPort = leaderPort;
         this.name = name;
-        this.apl = new AuthenticatedPerfectLink(network, leader);
-        this.leader = leader;
+        // Use clientAPL for receiving messages from the client (verify using client's key).
+        this.clientAPL = new AuthenticatedPerfectLink(clientNetwork, clientCrypto);
+        // Use leaderAPL for sending to leader (sign with server's own key).
+        this.leaderAPL = new AuthenticatedPerfectLink(leaderNetwork, serverCrypto);
+        this.serverCrypto = serverCrypto;
+        this.clientCrypto = clientCrypto;
         this.blockchain = new ArrayList<>();
-        this.port = port;
-        System.out.println("[BFT Server] " + name + " initialized on port " + port);
+        System.out.println("[BFT Server] " + name + " initialized.");
     }
 
     @Override
     public void run() {
-        System.out.println("[BFT Server] " + name + " started and listening on port " + this.port);
-
         try {
-            while (true) {
-                // Listen for incoming messages
-                String message = apl.receiveMessage();
-                System.out.println("[" + name + "] Received message: " + message);
-
-                // Store message in the blockchain (log of messages)
-                blockchain.add(message);
-                System.out.println("[" + name + "] Updated Blockchain: " + blockchain);
-            }
+            // First, receive the client message (sent using APL).
+            String clientMessage = clientAPL.receiveMessage();
+            System.out.println("[" + name + "] Received client message: " + clientMessage);
+            
+            // Compute the conditional (CC) signature over the payload.
+            byte[] ccSignature = serverCrypto.signMessage(clientMessage.getBytes());
+            String ccSignatureB64 = Base64.getEncoder().encodeToString(ccSignature);
+            
+            // Create a new message for the leader: payload::Base64(CC_signature)
+            String messageForLeader = clientMessage + "::" + ccSignatureB64;
+            System.out.println("[" + name + "] Forwarding message to leader: " + messageForLeader);
+            
+            // Send the message to the leader.
+            leaderAPL.sendMessage(messageForLeader, leaderAddress, leaderPort);
+            
+            // Wait for the leader's decision.
+            String decision = leaderAPL.receiveMessage();
+            blockchain.add(decision);
+            System.out.println("[" + name + "] Received decision from leader: " + decision);
         } catch (Exception e) {
-            System.err.println("[" + name + "] Error receiving message: " + e.getMessage());
+            System.err.println("[" + name + "] Error: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            apl.close();  // Ensure socket is closed when thread ends
         }
+    }
+
+    public List<String> getBlockchain() {
+        return blockchain;
     }
 }
