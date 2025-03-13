@@ -1,14 +1,16 @@
 import java.net.InetAddress;
 import java.security.PublicKey;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
-public class leaderBFT extends Thread {
+public class leaderBFT implements Runnable{
     private List<AuthenticatedPerfectLink> apl;
     private String name;
     private List<cryptoClass> servers;
@@ -16,8 +18,11 @@ public class leaderBFT extends Thread {
     private conditionalCollect cc;
     private List<InetAddress> serverAddresses;
     private List<Integer> serverPorts;
-    
 
+    private int valts=0; //Timestamp of the current value
+    private String val=null;
+    private Set<Map.Entry<Integer, String>> writeset;
+    
     public leaderBFT(String name,networkClass network, List<cryptoClass> servers, List<InetAddress> serverAddresses, List<Integer> serverPorts) {
         this.serverAddresses = serverAddresses;
         this.serverPorts = serverPorts;
@@ -28,6 +33,7 @@ public class leaderBFT extends Thread {
         }
         this.name = name;
         this.blockchain = new ArrayList<>();
+        this.writeset=new HashSet<>();
 
         Map<String, PublicKey> publicKeys = new HashMap<>();
         for(int i=0;i<servers.size(); i++){
@@ -37,31 +43,34 @@ public class leaderBFT extends Thread {
         System.out.println("[BFT Leader] Initialized.");
     }
 
-    //test
     @Override
     public void run() {
         System.out.println(name + " started.");
         try {
-            while (true) {
+            
                 // Collect messages from servers
                 for (int i = 0; i < apl.size(); i++) {
                     String message = apl.get(i).receiveMessage();
                     byte[] signature = extractSignature(message); // Extract signature from message
                     String payload = extractPayload(message);    // Extract payload from message
                     String serverId = "server" + i;              // Identify the server
-                    cc.collectMessage(serverId, "append", payload, signature);
+                    cc.collectMessage(serverId, "VALUE", payload, signature);
                 }
 
                 // Check if the condition is satisfied
-                if (cc.isConditionSatisfied("append")) {
-                    Set<Map.Entry<String, byte[]>> messages = cc.getMessages("append");
-                    String decision = decide(messages); // Decide based on majority
-                    blockchain.add(decision);
-                    System.out.println("[Leader] Decision made: " + decision);
-                    broadcastDecision(decision); // Broadcast decision to all servers
-                    cc.clearCondition("append");
+                if (cc.isConditionSatisfied("VALUE")) {
+                    Set<Map.Entry<String, byte[]>> messages = cc.getMessages("VALUE");
+                    String tmpval = determineValue(messages);
+                    if (tmpval != null) {
+                        val = tmpval;
+                        valts++;
+                        blockchain.add(val);
+                        writeset.add(new AbstractMap.SimpleEntry<>(valts, val));
+                        System.out.println("[Leader] Appended value to blockchain: " + val + " (timestamp: " + valts + ")");
+                        broadcastDecision(val);
+                        cc.clearCondition("VALUE");
+                    }
                 }
-            }
         } catch (Exception e) {
             System.err.println("[Leader] Error: " + e.getMessage());
             e.printStackTrace();
@@ -87,7 +96,7 @@ public class leaderBFT extends Thread {
     }
 
     // Decide based on the majority of messages
-    private String decide(Set<Map.Entry<String, byte[]>> messages) throws Exception {
+    private String determineValue(Set<Map.Entry<String, byte[]>> messages) throws Exception {
         Map<String, Integer> frequency = new HashMap<>();
         for (Map.Entry<String, byte[]> entry : messages) {
             String payload = entry.getKey();
@@ -114,7 +123,7 @@ public class leaderBFT extends Thread {
         System.out.println("[Leader] Broadcasting decision: " + decision);
         for (int i = 0; i < serverAddresses.size(); i++) {
             try {
-                apl.get(i).sendMessage(decision, serverAddresses.get(i), serverPorts.get(i));
+                apl.get(i).sendMessage("DECIDE::" + decision + "::" + valts, serverAddresses.get(i), serverPorts.get(i));
             } catch (Exception e) {
                 System.err.println("[Leader] Error broadcasting to server" + i + ": " + e.getMessage());
             }

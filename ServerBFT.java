@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public class ServerBFT extends Thread {
+public class ServerBFT implements Runnable {
     private String name;                      // Server name (e.g., "A", "B", "C", "D")
     private AuthenticatedPerfectLink clientAPL; // For receiving client messages.
     private AuthenticatedPerfectLink leaderAPL; // For sending to leader.
@@ -29,6 +29,7 @@ public class ServerBFT extends Thread {
 
     @Override
     public void run() {
+        System.out.println("[" + name + "] started.");
         try {
             // First, receive the client message (sent using APL).
             String clientMessage = clientAPL.receiveMessage();
@@ -48,9 +49,13 @@ public class ServerBFT extends Thread {
             // Wait for the leader's decision.
             System.out.println("[" + name + "] Waiting for leader's decision...");
             String decision = leaderAPL.receiveMessage();
-            System.out.println("[" + name + "] Received decision from leader: " + decision);
-            blockchain.add(decision);
-            System.out.println("[" + name + "] Received decision from leader: " + decision);
+            if(decision.startsWith("DECIDE::")) {
+                String value = decision.split("::")[1];
+                blockchain.add(value);
+                System.out.println("[" + name + "] Received decision from leader: " + value);
+            } else {
+                System.err.println("[" + name + "] Error: Unexpected message from leader: " + decision);
+            }
         } catch (Exception e) {
             System.err.println("[" + name + "] Error: " + e.getMessage());
             e.printStackTrace();
