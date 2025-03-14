@@ -28,7 +28,6 @@ SEC_DECHAIN/
 │   │   ├── AuthenticatedPerfectLinkTest.java
 │   │   ├── BFTTest.java
 │   │   ├── ConditionalCollectTest.java
-│── target/
 │── pom.xml
 │── README.md
 ```
