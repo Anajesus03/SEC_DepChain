@@ -22,8 +22,8 @@ public class BFTTest {
     @BeforeEach
     public void setUp() throws Exception {
         // Define ports.
-        int leaderPort = 8000;          // Leader listens on this port.
-        int serverClientPort = 7001;    // Server listens for client messages on this port.
+        int leaderPort = 8000;         
+        int serverClientPort = 7001;    
 
         // Generate key pairs.
         KeyPair leaderKP = KeyGeneratorUtil.generateRSAKeyPair();
@@ -38,14 +38,14 @@ public class BFTTest {
         // Create network instances.
         leaderNetwork = new networkClass(leaderPort);
         serverClientNetwork = new networkClass(serverClientPort);
-        clientNetwork = new networkClass(0); // Client uses an ephemeral port.
+        clientNetwork = new networkClass(0); 
 
         // Set up server addresses.
         InetAddress localhost = InetAddress.getByName("127.0.0.1");
         List<InetAddress> serverAddresses = new ArrayList<>();
         serverAddresses.add(localhost);
         List<Integer> serverLeaderPorts = new ArrayList<>();
-        serverLeaderPorts.add(leaderPort); // Server sends to leader on leaderPort.
+        serverLeaderPorts.add(leaderPort); 
         List<cryptoClass> serverCryptos = new ArrayList<>();
         serverCryptos.add(serverCrypto);
 
@@ -54,7 +54,6 @@ public class BFTTest {
         server = new ServerBFT("server0", serverClientNetwork, leaderNetwork,
                 serverCrypto, clientCrypto, localhost, leaderPort);
 
-        // Create client instance.
         client = new Client(clientNetwork, clientCrypto);
     }
 
@@ -66,15 +65,12 @@ public class BFTTest {
         leaderThread.start();
         serverThread.start();
 
-        // Let leader and server start up.
         Thread.sleep(1000);
 
-        // Client sends a message to the server.
         String clientMessage = "TestMessage";
         System.out.println("[Client] Sending message: " + clientMessage);
         client.send(clientMessage, InetAddress.getLocalHost(), 7001);
 
-        // Allow time for the protocol to execute.
         Thread.sleep(1000);
 
         // Print final blockchain states.

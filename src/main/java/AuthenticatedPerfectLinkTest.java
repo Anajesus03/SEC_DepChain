@@ -13,8 +13,8 @@ public class AuthenticatedPerfectLinkTest {
             KeyPair receiverKeyPair = keyGen.generateKeyPair();
 
             // Create network and crypto instances for sender and receiver
-            networkClass senderNetwork = new networkClass(5000); // Sender listens on port 5000
-            networkClass receiverNetwork = new networkClass(6000); // Receiver listens on port 6000
+            networkClass senderNetwork = new networkClass(5000); 
+            networkClass receiverNetwork = new networkClass(6000); 
 
             cryptoClass senderCrypto = new cryptoClass(senderKeyPair.getPrivate(), receiverKeyPair.getPublic());
             cryptoClass receiverCrypto = new cryptoClass(receiverKeyPair.getPrivate(), senderKeyPair.getPublic());
@@ -35,7 +35,6 @@ public class AuthenticatedPerfectLinkTest {
             });
             receiverThread.start();
 
-            // Give the receiver some time to start listening
             Thread.sleep(1000);
 
             // Send a message from the sender to the receiver
@@ -46,11 +45,10 @@ public class AuthenticatedPerfectLinkTest {
             System.out.println("[Sender] Sending message: " + message);
             senderLink.sendMessage(message, receiverAddress, receiverPort);
 
-            // Wait for the receiver thread to finish
             receiverThread.join();
 
             System.out.println("\n=== Testing Duplicate Message Detection and Reliable delivery ===");
-            senderLink.sequenceNumbers = 0; // Reset the sequence number
+            senderLink.sequenceNumbers = 0;
 
             // Start a new receiver thread for the duplicate test.
             Thread duplicateReceiverThread = new Thread(() -> {
@@ -59,7 +57,6 @@ public class AuthenticatedPerfectLinkTest {
                     String duplicateMsg = receiverLink.receiveMessage();
                     System.out.println("[Receiver-Duplicate] Received duplicate message: " + duplicateMsg);
                 } catch (Exception e) {
-                    // Expected: duplicate message detection should throw an exception.
                     System.out.println("[Receiver-Duplicate] Exception: " + e.getMessage());
                 }
             });
@@ -70,9 +67,8 @@ public class AuthenticatedPerfectLinkTest {
             System.out.println("[Sender] Sending message: " + message);
             senderLink.sendMessage(message, receiverAddress, receiverPort);
 
-            duplicateReceiverThread.join(5000); // Wait for the receiver thread to finish
+            duplicateReceiverThread.join(5000);
 
-            // Close the links
             senderLink.close();
             receiverLink.close();
 

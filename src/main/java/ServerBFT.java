@@ -4,12 +4,12 @@ import java.util.Base64;
 import java.util.List;
 
 public class ServerBFT implements Runnable {
-    private String name;                      // Server name (e.g., "A", "B", "C", "D")
-    private AuthenticatedPerfectLink clientAPL; // For receiving client messages.
-    private AuthenticatedPerfectLink leaderAPL; // For sending to leader.
+    private String name;                      
+    private AuthenticatedPerfectLink clientAPL; 
+    private AuthenticatedPerfectLink leaderAPL; 
     private cryptoClass serverCrypto;
-    private cryptoClass clientCrypto; // Used to verify client messages.
-    private List<String> blockchain;          // Simulated blockchain (message storage)
+    private cryptoClass clientCrypto; 
+    private List<String> blockchain;         
     private InetAddress leaderAddress;
     private int leaderPort;                         
 
@@ -17,9 +17,7 @@ public class ServerBFT implements Runnable {
         this.leaderAddress = leaderAddress;
         this.leaderPort = leaderPort;
         this.name = name;
-        // Use clientAPL for receiving messages from the client (verify using client's key).
         this.clientAPL = new AuthenticatedPerfectLink(clientNetwork, clientCrypto);
-        // Use leaderAPL for sending to leader (sign with server's own key).
         this.leaderAPL = new AuthenticatedPerfectLink(leaderNetwork, serverCrypto);
         this.serverCrypto = serverCrypto;
         this.clientCrypto = clientCrypto;
@@ -31,7 +29,7 @@ public class ServerBFT implements Runnable {
     public void run() {
         System.out.println("[" + name + "] started.");
         try {
-            // First, receive the client message (sent using APL).
+            // Receive the client message (sent using APL).
             String clientMessage = clientAPL.receiveMessage();
             System.out.println("[" + name + "] Received client message: " + clientMessage);
             if(clientMessage.startsWith("QUERY::")){
@@ -42,18 +40,14 @@ public class ServerBFT implements Runnable {
                 
             }else{
             
-            // Compute the conditional (CC) signature over the payload.
             byte[] ccSignature = serverCrypto.signMessage(clientMessage.getBytes());
             String ccSignatureB64 = Base64.getEncoder().encodeToString(ccSignature);
             
-            // Create a new message for the leader: payload::Base64(CC_signature)
             String messageForLeader = clientMessage + "::" + ccSignatureB64;
             System.out.println("[" + name + "] Forwarding message to leader: " + messageForLeader);
-            
-            // Send the message to the leader.
+
             leaderAPL.sendMessage(messageForLeader, leaderAddress, leaderPort);
             
-            // Wait for the leader's decision.
             System.out.println("[" + name + "] Waiting for leader's decision...");
             String decision = leaderAPL.receiveMessage();
             if(decision.startsWith("DECIDE::")) {

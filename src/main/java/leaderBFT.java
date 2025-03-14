@@ -51,9 +51,9 @@ public class leaderBFT implements Runnable{
                 // Collect messages from servers
                 for (int i = 0; i < apl.size(); i++) {
                     String message = apl.get(i).receiveMessage();
-                    byte[] signature = extractSignature(message); // Extract signature from message
-                    String payload = extractPayload(message);    // Extract payload from message
-                    String serverId = "server" + i;              // Identify the server
+                    byte[] signature = extractSignature(message); 
+                    String payload = extractPayload(message);    
+                    String serverId = "server" + i;             
                     cc.collectMessage(serverId, "VALUE", payload, signature);
                 }
 

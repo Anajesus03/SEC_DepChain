@@ -33,7 +33,6 @@ public class AuthenticatedPerfectLink {
 
         boolean receivedACK = false; // AP1: Reliable delivery
 
-        // checks if the message is too large to be sent
         if (messageWithSignature.length > MAX_UDP_SIZE) {
             throw new Exception("Message too large");
         }
@@ -83,7 +82,7 @@ public class AuthenticatedPerfectLink {
                 System.out.println("[Receiver] Message is not duplicated.");
                 receivedSequenceNumbers.add(sequenceNumber);
                 System.out.println("[Receiver] Sending ACK...");
-                sendACK(packet.getAddress(), packet.getPort()); // send ACK to sender
+                sendACK(packet.getAddress(), packet.getPort()); 
                 System.out.println("[Receiver] Processing message: " + new String(payload));
                 return new String(payload);
             } else {

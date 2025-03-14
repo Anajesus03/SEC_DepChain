@@ -7,7 +7,7 @@ public class conditionalCollect {
 
     // key is condition and value is set of messages
     private Map<String, Set<Map.Entry<String,byte[]>>> collectedMessages = new ConcurrentHashMap<>();
-    private int expectedMessages; // number of messages to satisfy the condition
+    private int expectedMessages; 
     private Map<String, PublicKey> publicKeys;
 
     public conditionalCollect(int expectedMessages, Map<String, PublicKey> publicKeys) {
