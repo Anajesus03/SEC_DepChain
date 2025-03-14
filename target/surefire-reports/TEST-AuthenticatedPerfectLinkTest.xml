@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="AuthenticatedPerfectLinkTest" time="7.2" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/test-classes:/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/classes:/home/rodrigo/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar:/home/rodrigo/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/rodrigo/.m2/repository/org/junit/platform/junit-platform-commons/1.10.0/junit-platform-commons-1.10.0.jar:/home/rodrigo/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/rodrigo/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar:/home/rodrigo/.m2/repository/org/junit/platform/junit-platform-engine/1.10.0/junit-platform-engine-1.10.0.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.country.format" value="PT"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/opt/jdk-17.0.10+7/lib"/>
+    <property name="sun.java.command" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/surefire/surefirebooter-20250314173243544_3.jar /home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/surefire 2025-03-14T17-32-43_454-jvmRun1 surefire-20250314173243544_1tmp surefire_0-20250314173243544_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/test-classes:/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/classes:/home/rodrigo/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar:/home/rodrigo/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/rodrigo/.m2/repository/org/junit/platform/junit-platform-commons/1.10.0/junit-platform-commons-1.10.0.jar:/home/rodrigo/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/rodrigo/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar:/home/rodrigo/.m2/repository/org/junit/platform/junit-platform-engine/1.10.0/junit-platform-engine-1.10.0.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/rodrigo"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2024-01-16"/>
+    <property name="java.home" value="/opt/jdk-17.0.10+7"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="surefire.real.class.path" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain/target/surefire/surefirebooter-20250314173243544_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.10+7"/>
+    <property name="user.name" value="rodrigo"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="6.8.0-52-generic"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-17.0.10+7"/>
+    <property name="localRepository" value="/home/rodrigo/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="java.version" value="17.0.10"/>
+    <property name="user.dir" value="/home/rodrigo/Documents/Faculdade/SEC/SEC_DepChain"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.language.format" value="pt"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="17.0.10+7"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="testAuthenticatedPerfectLink" classname="AuthenticatedPerfectLinkTest" time="7.197">
+    <system-out><![CDATA[[Receiver] Waiting for message...
+[Receiver] Waiting for packet...
+[Sender] Sending message: Hello, this is a secure message!
+[Sender] Preparing message: Hello, this is a secure message!
+[Sender] Signing message...
+[Sender] Sending message to 127.0.1.1:6000
+[Sender] Waiting for ACK...
+[Sender] Waiting for ACK with timeout 8000ms...
+[Receiver] Received packet from 127.0.0.1:5000
+[Receiver] Verifying signature...
+[Receiver] Signature verified.
+[Receiver] Checking for duplicate message...
+[Receiver] Message is not duplicated.
+[Receiver] Sending ACK...
+[Receiver] Sending ACK to 127.0.0.1:5000
+[Receiver] Processing message: Hello, this is a secure message!
+[Sender] ACK received.
+[Sender] Received ACK from 127.0.0.1:6000
+[Receiver] Received message: Hello, this is a secure message!
+[Sender] Message sent successfully.
+[Receiver-Duplicate] Exception: Duplicate message
+[Receiver-Duplicate] Closing sender's socket to stop further sends.
+
+=== Testing Duplicate Message Detection ===
+[Receiver-Duplicate] Waiting for duplicate message...
+[Receiver] Waiting for packet...
+[Sender] Sender socket is closed, not sending message again.
+[Receiver-Duplicate] Exception: Socket closed
+]]></system-out>
+  </testcase>
+</testsuite>

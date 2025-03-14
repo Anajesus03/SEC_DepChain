@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ServerApp {
-    public static void main(String[] args) {
+/*    public static void main(String[] args) {
         try {
             // Create 4 Normal Servers on different ports
             List<String> name_list = Arrays.asList("A", "B", "C", "D");
@@ -48,4 +48,5 @@ public class ServerApp {
             e.printStackTrace();
         }
     }
+        */
 }
