@@ -16,16 +16,15 @@ SEC_DECHAIN/
 │── src/
 │   ├── main/java/
 │   │   ├── AuthenticatedPerfectLink.java
-│   │   ├── BFTConsensus.java
+│   │   ├── AuthenticatedPerfectLinkTest.java
 │   │   ├── Client.java
-│   │   ├── ClientBFT.java
+│   │   ├── conditionalCollect.java
 │   │   ├── cryptoClass.java
 │   │   ├── KeyGeneratorUtil.java
 │   │   ├── LeaderBFT.java
 │   │   ├── networkClass.java
 │   │   ├── ServerBFT.java
 │   ├── test/java/
-│   │   ├── AuthenticatedPerfectLinkTest.java
 │   │   ├── BFTTest.java
 │   │   ├── ConditionalCollectTest.java
 │── pom.xml
@@ -44,23 +43,23 @@ mvn clean compile
 ```
 
 ## Running the Tests
-This project includes unit tests written with JUnit 5. Run them using:
+This project includes unit tests written with JUnit 5, BFTTest.java and ConditionalCollectTest.java Run them using:
 ```sh
 mvn test
+```
+To run AuthenticatedPerfectLinkTest simply go to the folder of src/main/java and run the commands:
+
+```sh
+javac AuthenticatedPerfectLinkTest.java 
+```
+
+followed by:
+
+```sh
+java AuthenticatedPerfectLinkTest.java 
 ```
 
 ## Dependencies
 The project uses the following dependencies:
 - **JUnit 5** for unit testing
 - **Maven Compiler Plugin** for Java 17 compilation
-
-
-
-
-
-
-
-
-
-
-
