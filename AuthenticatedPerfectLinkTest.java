@@ -22,7 +22,7 @@ public class AuthenticatedPerfectLinkTest {
             // Create AuthenticatedPerfectLink instances for sender and receiver
             AuthenticatedPerfectLink senderLink = new AuthenticatedPerfectLink(senderNetwork, senderCrypto);
             AuthenticatedPerfectLink receiverLink = new AuthenticatedPerfectLink(receiverNetwork, receiverCrypto);
-
+            
             // Start a receiver thread to listen for incoming messages
             Thread receiverThread = new Thread(() -> {
                 try {
@@ -48,6 +48,29 @@ public class AuthenticatedPerfectLinkTest {
 
             // Wait for the receiver thread to finish
             receiverThread.join();
+
+            System.out.println("\n=== Testing Duplicate Message Detection and Reliable delivery ===");
+            senderLink.sequenceNumbers = 0; // Reset the sequence number
+
+            // Start a new receiver thread for the duplicate test.
+            Thread duplicateReceiverThread = new Thread(() -> {
+                try {
+                    System.out.println("[Receiver-Duplicate] Waiting for duplicate message...");
+                    String duplicateMsg = receiverLink.receiveMessage();
+                    System.out.println("[Receiver-Duplicate] Received duplicate message: " + duplicateMsg);
+                } catch (Exception e) {
+                    // Expected: duplicate message detection should throw an exception.
+                    System.out.println("[Receiver-Duplicate] Exception: " + e.getMessage());
+                }
+            });
+            duplicateReceiverThread.start();
+
+            Thread.sleep(1000);
+
+            System.out.println("[Sender] Sending message: " + message);
+            senderLink.sendMessage(message, receiverAddress, receiverPort);
+
+            duplicateReceiverThread.join(5000); // Wait for the receiver thread to finish
 
             // Close the links
             senderLink.close();

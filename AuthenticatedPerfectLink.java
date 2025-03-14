@@ -7,7 +7,7 @@ public class AuthenticatedPerfectLink {
 
     private networkClass networkClass;
     private cryptoClass crypto;
-    private int sequenceNumbers=0; // AP2: No duplication
+    public int sequenceNumbers=0; // AP2: No duplication
     private Set<Integer> receivedSequenceNumbers = new HashSet<>(); 
     private static final int MAX_UDP_SIZE = 65507; // Maximum size of a UDP packet
 
@@ -76,10 +76,11 @@ public class AuthenticatedPerfectLink {
             int sequenceNumber = buffer.getInt();
             byte[] payload = new byte[message.length-4];
             buffer.get(payload);
-
+            System.out.println("[Receiver] Signature verified.");
             // AP2: No duplication
             System.out.println("[Receiver] Checking for duplicate message...");
             if(!receivedSequenceNumbers.contains(sequenceNumber)) {
+                System.out.println("[Receiver] Message is not duplicated.");
                 receivedSequenceNumbers.add(sequenceNumber);
                 System.out.println("[Receiver] Sending ACK...");
                 sendACK(packet.getAddress(), packet.getPort()); // send ACK to sender
