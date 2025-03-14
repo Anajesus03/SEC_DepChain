@@ -123,5 +123,9 @@ public class AuthenticatedPerfectLink {
     public void close() {
         networkClass.closeSocket();
     }
+
+    public DatagramSocket getSocket() {
+        return networkClass.getSocket();
+    }
     
 }

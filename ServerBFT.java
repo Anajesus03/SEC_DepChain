@@ -34,6 +34,13 @@ public class ServerBFT implements Runnable {
             // First, receive the client message (sent using APL).
             String clientMessage = clientAPL.receiveMessage();
             System.out.println("[" + name + "] Received client message: " + clientMessage);
+            if(clientMessage.startsWith("QUERY::")){
+                String value = clientMessage.split("::")[1];
+                boolean isValueadded =  blockchain.contains(value);
+                String response = "RESPONSE::" + isValueadded;
+                clientAPL.sendMessage(response, clientAPL.getSocket().getInetAddress(), clientAPL.getSocket().getPort()); 
+                
+            }else{
             
             // Compute the conditional (CC) signature over the payload.
             byte[] ccSignature = serverCrypto.signMessage(clientMessage.getBytes());
@@ -56,6 +63,9 @@ public class ServerBFT implements Runnable {
             } else {
                 System.err.println("[" + name + "] Error: Unexpected message from leader: " + decision);
             }
+
+            }
+            
         } catch (Exception e) {
             System.err.println("[" + name + "] Error: " + e.getMessage());
             e.printStackTrace();
