@@ -1,0 +1,54 @@
+{
+    "block_hash": "<HASH_OF_LIST_OF_TRANSACTIONS>",
+    "previous_block_hash": null,
+    "transactions": [
+      {
+        "type": "contract_deployment",
+        "contract_name": "Blacklist",
+        "contract_address": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+        "bytecode": "0x60016002...",
+        "initial_storage": {
+          "owner": "0x9876543210abcdef9876543210abcdef98765432",
+          "blacklist": []
+        }
+      },
+      {
+        "type": "contract_deployment",
+        "contract_name": "ISTCoin",
+        "contract_address": "0x1234567890abcdef1234567890abcdef12345678",
+        "bytecode": "0x60016002...",
+        "initial_storage": {
+          "totalSupply": "100000000000000000000000000", 
+          "name": "IST Coin", 
+          "symbol": "IST", 
+          "decimals": 2,
+          "blacklistContract": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
+        }
+      }
+    ],
+    "state": {
+      "0x9876543210abcdef9876543210abcdef98765432": {
+        "balance": "1000000000000000000000000"
+      },
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef": {
+        "balance": "0",
+        "code": "0x60016002...",
+        "storage": {
+          "owner": "0x9876543210abcdef9876543210abcdef98765432",
+          "blacklist": []
+        }
+      },
+      "0x1234567890abcdef1234567890abcdef12345678": {
+        "balance": "0",
+        "code": "0x60016002...",
+        "storage": {
+          "totalSupply": "100000000000000000000000000", 
+          "name": "IST Coin", 
+          "symbol": "IST", 
+          "decimals": 2,
+          "blacklistContract": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
+        }
+      }
+    }
+  }
+  
