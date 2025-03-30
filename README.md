@@ -63,3 +63,7 @@ java AuthenticatedPerfectLinkTest.java
 The project uses the following dependencies:
 - **JUnit 5** for unit testing
 - **Maven Compiler Plugin** for Java 17 compilation
+
+## Project 2
+- Compilar Main:javac -cp ".:/home/rodrigo/Documents/Faculdade/SEC/lab/lab2/jars/*" Main.java
+- Correr Main: java -cp ".:/home/rodrigo/Documents/Faculdade/SEC/lab/lab2/jars/*" Main
