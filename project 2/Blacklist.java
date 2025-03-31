@@ -29,8 +29,17 @@ import org.web3j.utils.Numeric;
 public class Blacklist {
 
     public static void main(String[] args) throws IOException {
-        Path path = Paths.get("bytecode.txt");
-        String bytecodeHex = Files.readString(path).trim();
+        Path path = Paths.get("deployBlackList.txt");
+        String deployBlackList = Files.readString(path).trim();
+
+        path = Paths.get("deployISTCoin.txt");
+        String deployISTCoin = Files.readString(path).trim();
+
+        path = Paths.get("runtimeBlackList.txt");
+        String runtimeBlackList = Files.readString(path).trim();
+
+        path = Paths.get("runtimeISTCoin.txt");
+        String runtimeISTCoin = Files.readString(path).trim();
 
         SimpleWorld simpleWorld = new SimpleWorld();
 
@@ -43,10 +52,10 @@ public class Blacklist {
         System.out.println("  Nonce: "+senderAccount.getNonce());
         System.out.println();
 
-        Address contractAddress = Address.fromHexString("1234567891234567891234567891234567891234");
-        simpleWorld.createAccount(contractAddress,0, Wei.fromEth(0));
-        MutableAccount contractAccount = (MutableAccount) simpleWorld.get(contractAddress);
-        System.out.println("Contract Account");
+        Address blackListContractAddress = Address.fromHexString("1234567891234567891234567891234567891234");
+        simpleWorld.createAccount(blackListContractAddress,0, Wei.fromEth(0));
+        MutableAccount contractAccount = (MutableAccount) simpleWorld.get(blackListContractAddress);
+        System.out.println("BlackList Contract Account");
         System.out.println("  Address: "+contractAccount.getAddress());
         System.out.println("  Balance: "+contractAccount.getBalance());
         System.out.println("  Nonce: "+contractAccount.getNonce());
@@ -54,7 +63,16 @@ public class Blacklist {
         String paddedAddress = padHexStringTo256Bit(senderAddress.toHexString());
         String stateVariableIndex = convertIntegerToHex256Bit(0);
         String storageSlotMapping = Numeric.toHexStringNoPrefix(Hash.sha3(Numeric.hexStringToByteArray(paddedAddress + stateVariableIndex)));
-        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(contractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
+        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(blackListContractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
+        System.out.println();
+
+        Address ISTCoinContractAddress = Address.fromHexString("9876543210987654321098765432109876543210");
+        simpleWorld.createAccount(ISTCoinContractAddress,0, Wei.fromEth(0));
+        MutableAccount contractAccountIST = (MutableAccount) simpleWorld.get(ISTCoinContractAddress);
+        System.out.println("ISTCoin Contract Account");
+        System.out.println("  Address: "+contractAccountIST .getAddress());
+        System.out.println("  Balance: "+contractAccountIST .getBalance());
+        System.out.println("  Nonce: "+contractAccountIST .getNonce());
         System.out.println();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -63,47 +81,53 @@ public class Blacklist {
 
         var executor = EVMExecutor.evm(EvmSpecVersion.CANCUN);
         executor.tracer(tracer);
-        executor.code(Bytes.fromHexString(bytecodeHex));
+        
+        executor.code(Bytes.fromHexString(deployBlackList));
         executor.sender(senderAddress);
-        executor.receiver(contractAddress);
+        executor.receiver(blackListContractAddress);
         executor.worldUpdater(simpleWorld.updater());
         executor.commitWorldState();
+        executor.execute();
+        System.out.println("Deploying BlackList Contract");
 
         String addressHex = "feedfacefeedfacefeedfacefeedfacefeedface";
         String arg = String.format("%064x", new BigInteger(addressHex, 16));
 
+        executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("71a2c180"+ arg));
         executor.execute();
         String isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
+        executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("44337ea1" + arg));
         executor.execute();
         String enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlackList(feedface...): " + enter);
 
-        System.out.println("Contract Account");
+        System.out.println("BlackList Account");
         System.out.println("  Address: "+contractAccount.getAddress());
         System.out.println("  Balance: "+contractAccount.getBalance());
         System.out.println("  Nonce: "+contractAccount.getNonce());
         System.out.println("  Storage:");
-        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(contractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
+        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(blackListContractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
         System.out.println();
 
+        executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("71a2c180"+ arg));
         executor.execute();
         isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
+        executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("44337ea1" + arg));
         executor.execute();
         enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlackList(feedface...): " + enter);
 
+        executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("45773e4e"));
-
         executor.execute();
-
         String string = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("Output string of 'sayHelloWorld():' " + string);
 

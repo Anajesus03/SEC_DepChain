@@ -13,14 +13,14 @@ contract Blacklist is Ownable {
     event AddedToBlacklist(address indexed account);
     event RemovedFromBlacklist(address indexed account);
 
-    function addToBlacklist(address account) public returns (string memory) {
+    function addToBlacklist(address account) external onlyOwner returns (string memory) {
         if (blacklisted[account] ) {return "Account already blacklisted";}
         blacklisted[account] = true;
         emit AddedToBlacklist(account);
         return "added";
     }
 
-    function removeFromBlacklist(address account) public returns (bool) {
+    function removeFromBlacklist(address account) external onlyOwner returns (bool) {
         require(blacklisted[account], "Account is not blacklisted");
         blacklisted[account] = false;
         emit RemovedFromBlacklist(account);
