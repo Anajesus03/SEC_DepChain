@@ -8,30 +8,21 @@ contract Blacklist is Ownable {
     constructor() Ownable(msg.sender) {}  // Pass deployer as initial owner
 
     mapping(address => bool) private blacklisted;
-    address[] private blacklistedAddresses;
+
 
     event AddedToBlacklist(address indexed account);
     event RemovedFromBlacklist(address indexed account);
 
-    function addToBlacklist(address account) external onlyOwner returns (bool) {
-        require(!blacklisted[account], "Account already blacklisted");
+    function addToBlacklist(address account) public returns (string memory) {
+        if (blacklisted[account] ) {return "Account already blacklisted";}
         blacklisted[account] = true;
-        blacklistedAddresses.push(account); 
         emit AddedToBlacklist(account);
-        return true;
+        return "added";
     }
 
-    function removeFromBlacklist(address account) external onlyOwner returns (bool) {
+    function removeFromBlacklist(address account) public returns (bool) {
         require(blacklisted[account], "Account is not blacklisted");
         blacklisted[account] = false;
-        for (uint i = 0; i < blacklistedAddresses.length; i++) {
-            if (blacklistedAddresses[i] == account) {
-                blacklistedAddresses[i] = blacklistedAddresses[blacklistedAddresses.length - 1];
-                blacklistedAddresses.pop();
-                break;
-            }
-        }
-
         emit RemovedFromBlacklist(account);
         return true;
     }
@@ -40,8 +31,12 @@ contract Blacklist is Ownable {
         return blacklisted[account];
     }
 
-    function getBlacklist() public view returns (address[] memory) {
-        return blacklistedAddresses;
+    function isBlacklisted_String(address account) public view returns (string memory) {
+        if(blacklisted[account]){return "True, it is blacklisted";}
+        return "False, it is not blacklisted";
+    }
+    function sayHelloWorld() public pure returns (string memory){
+        return "hello";
     }
 }
 
