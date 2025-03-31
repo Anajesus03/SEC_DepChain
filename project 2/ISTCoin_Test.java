@@ -26,7 +26,7 @@ import java.math.BigInteger;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
-public class Blacklist {
+public class ISTCoin_Test {
 
     public static void main(String[] args) throws IOException {
         Path path = Paths.get("deployBlackList.txt");
@@ -82,9 +82,10 @@ public class Blacklist {
         var executor = EVMExecutor.evm(EvmSpecVersion.CANCUN);
         executor.tracer(tracer);
         
-        executor.code(Bytes.fromHexString(deployBlackList));
+        executor.code(Bytes.fromHexString(deployISTCoin));
         executor.sender(senderAddress);
-        executor.receiver(blackListContractAddress);
+        executor.receiver(ISTCoinContractAddress);
+        System.out.println("Deploying ISTCoin Contract");
         executor.worldUpdater(simpleWorld.updater());
         executor.commitWorldState();
         executor.execute();
@@ -93,37 +94,43 @@ public class Blacklist {
         String addressHex = "feedfacefeedfacefeedfacefeedfacefeedface";
         String arg = String.format("%064x", new BigInteger(addressHex, 16));
 
-        executor.code(Bytes.fromHexString(runtimeBlackList));
+        executor.code(Bytes.fromHexString(runtimeISTCoin));
         executor.callData(Bytes.fromHexString("71a2c180"+ arg));
         executor.execute();
         String isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
-        executor.code(Bytes.fromHexString(runtimeBlackList));
+        executor.code(Bytes.fromHexString(runtimeISTCoin));
         executor.callData(Bytes.fromHexString("44337ea1" + arg));
         executor.execute();
         String enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlackList(feedface...): " + enter);
 
-        System.out.println("BlackList Account");
-        System.out.println("  Address: "+contractAccount.getAddress());
-        System.out.println("  Balance: "+contractAccount.getBalance());
-        System.out.println("  Nonce: "+contractAccount.getNonce());
-        System.out.println("  Storage:");
-        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(blackListContractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
-        System.out.println();
-
-        executor.code(Bytes.fromHexString(runtimeBlackList));
+        executor.code(Bytes.fromHexString(runtimeISTCoin));
         executor.callData(Bytes.fromHexString("71a2c180"+ arg));
         executor.execute();
         isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
-        executor.code(Bytes.fromHexString(runtimeBlackList));
-        executor.callData(Bytes.fromHexString("44337ea1" + arg));
+        executor.code(Bytes.fromHexString(runtimeISTCoin));;
+        String paddedAmount = padHexStringTo256Bit("0x2710");
+        String callData = "a9059cbb" + arg + paddedAmount;
+        executor.callData(Bytes.fromHexString(callData));
+        executor.execute();
+        //System.out.println(byteArrayOutputStream.toString());
+
+        executor.code(Bytes.fromHexString(runtimeISTCoin));
+        executor.callData(Bytes.fromHexString("537df3b6" + arg));
         executor.execute();
         enter = extractStringFromReturnData(byteArrayOutputStream);
-        System.out.println("addToBlackList(feedface...): " + enter);
+        System.out.println("removeFromBlacklist(address): " + enter);
+
+        executor.code(Bytes.fromHexString(runtimeISTCoin));
+        paddedAmount = padHexStringTo256Bit("0x2710");
+        callData = "a9059cbb" + arg + paddedAmount;
+        executor.callData(Bytes.fromHexString(callData));
+        executor.execute();
+        //System.out.println(byteArrayOutputStream.toString());
 
         executor.code(Bytes.fromHexString(runtimeBlackList));
         executor.callData(Bytes.fromHexString("45773e4e"));
