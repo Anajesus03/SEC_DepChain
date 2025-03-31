@@ -14,17 +14,17 @@ contract Blacklist is Ownable {
     event RemovedFromBlacklist(address indexed account);
 
     function addToBlacklist(address account) external onlyOwner returns (string memory) {
-        if (blacklisted[account] ) {return "Account already blacklisted";}
+        if (blacklisted[account] ) {return "Account already blacklisted, confirmed by me the supreme owner";}
         blacklisted[account] = true;
         emit AddedToBlacklist(account);
-        return "added";
+        return "Added new entry in blackList";
     }
 
-    function removeFromBlacklist(address account) external onlyOwner returns (bool) {
-        require(blacklisted[account], "Account is not blacklisted");
+    function removeFromBlacklist(address account) external onlyOwner returns (string memory) {
+        if (!blacklisted[account] ) {return "Account is not blacklisted, confirmed by me the supreme owner";}
         blacklisted[account] = false;
         emit RemovedFromBlacklist(account);
-        return true;
+        return "Removed from blackList";
     }
 
     function isBlacklisted(address account) public view returns (bool) {
@@ -35,6 +35,7 @@ contract Blacklist is Ownable {
         if(blacklisted[account]){return "True, it is blacklisted";}
         return "False, it is not blacklisted";
     }
+    
     function sayHelloWorld() public pure returns (string memory){
         return "hello";
     }
