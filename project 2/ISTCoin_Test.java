@@ -52,20 +52,6 @@ public class ISTCoin_Test {
         System.out.println("  Nonce: "+senderAccount.getNonce());
         System.out.println();
 
-        Address blackListContractAddress = Address.fromHexString("1234567891234567891234567891234567891234");
-        simpleWorld.createAccount(blackListContractAddress,0, Wei.fromEth(0));
-        MutableAccount contractAccount = (MutableAccount) simpleWorld.get(blackListContractAddress);
-        System.out.println("BlackList Contract Account");
-        System.out.println("  Address: "+contractAccount.getAddress());
-        System.out.println("  Balance: "+contractAccount.getBalance());
-        System.out.println("  Nonce: "+contractAccount.getNonce());
-        System.out.println("  Storage:");
-        String paddedAddress = padHexStringTo256Bit(senderAddress.toHexString());
-        String stateVariableIndex = convertIntegerToHex256Bit(0);
-        String storageSlotMapping = Numeric.toHexStringNoPrefix(Hash.sha3(Numeric.hexStringToByteArray(paddedAddress + stateVariableIndex)));
-        System.out.println("    Slot SHA3[msg.sender||0] (mapping): "+simpleWorld.get(blackListContractAddress).getStorageValue(UInt256.fromHexString(storageSlotMapping)));
-        System.out.println();
-
         Address ISTCoinContractAddress = Address.fromHexString("9876543210987654321098765432109876543210");
         simpleWorld.createAccount(ISTCoinContractAddress,0, Wei.fromEth(0));
         MutableAccount contractAccountIST = (MutableAccount) simpleWorld.get(ISTCoinContractAddress);
@@ -117,7 +103,7 @@ public class ISTCoin_Test {
         String callData = "a9059cbb" + arg + paddedAmount;
         executor.callData(Bytes.fromHexString(callData));
         executor.execute();
-        //System.out.println(byteArrayOutputStream.toString());
+        analyzeIstCoinResult(byteArrayOutputStream);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
         executor.callData(Bytes.fromHexString("537df3b6" + arg));
@@ -130,14 +116,7 @@ public class ISTCoin_Test {
         callData = "a9059cbb" + arg + paddedAmount;
         executor.callData(Bytes.fromHexString(callData));
         executor.execute();
-        //System.out.println(byteArrayOutputStream.toString());
-
-        executor.code(Bytes.fromHexString(runtimeBlackList));
-        executor.callData(Bytes.fromHexString("45773e4e"));
-        executor.execute();
-        String string = extractStringFromReturnData(byteArrayOutputStream);
-        System.out.println("Output string of 'sayHelloWorld():' " + string);
-
+        analyzeIstCoinResult(byteArrayOutputStream);
     }
 
     public static String extractStringFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
@@ -224,4 +203,20 @@ public class ISTCoin_Test {
     }
 
 
+    public static void analyzeIstCoinResult(ByteArrayOutputStream byteArrayOutputStream) {
+        String output = byteArrayOutputStream.toString();
+        String[] lines = output.trim().split("\n");
+        if (lines.length == 0) {
+            System.out.println("No output to analyze.");
+        } else {
+            String lastLine = lines[lines.length - 1];
+            if (lastLine.contains("\"opName\":\"REVERT\"")) {
+                System.out.println("Failed to do transaction, someone is on a Blacklist");
+            } else if (lastLine.contains("\"opName\":\"RETURN\"")) {
+                System.out.println("Transaction passed in ISTCoin, no one is in BlackList");
+            } else {
+                System.out.println("Unexpected EVM result");
+            }
+        }
+    }
 }
