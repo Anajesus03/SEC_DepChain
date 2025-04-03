@@ -48,7 +48,6 @@ public class ISTCoin_Test_Genesis {
             JsonObject account = entry.getValue().getAsJsonObject();
             Address address = Address.fromHexString(addr);
 
-            if (knownAddresses.contains(address)) continue;
             knownAddresses.add(address);
 
             Wei balance = Wei.of(new BigInteger(account.get("balance").getAsString())); 
