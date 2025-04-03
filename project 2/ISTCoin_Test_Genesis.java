@@ -38,10 +38,17 @@ public class ISTCoin_Test_Genesis {
 
         SimpleWorld simpleWorld = new SimpleWorld();
         JsonObject state = genesis.getAsJsonObject("state");
+
+        Address senderAddress = null;
+        Address ISTCoinContractAddress = null;
+        Address recipientAddress = null;
+
         for (Map.Entry<String, JsonElement> entry : state.entrySet()) {
             String addr = entry.getKey();
             JsonObject account = entry.getValue().getAsJsonObject();
             Address address = Address.fromHexString(addr);
+
+            if (knownAddresses.contains(address)) continue;
             knownAddresses.add(address);
 
             Wei balance = Wei.of(new BigInteger(account.get("balance").getAsString())); 
@@ -56,19 +63,15 @@ public class ISTCoin_Test_Genesis {
                 acc.setCode(Bytes.fromHexString(account.get("code").getAsString()));
             }
 
-            if (account.has("storage")) {
-                JsonObject storage = account.getAsJsonObject("storage");
-                for (Map.Entry<String, JsonElement> s : storage.entrySet()) {
-                    UInt256 key = UInt256.fromHexString(s.getKey());
-                    UInt256 value = UInt256.fromHexString(s.getValue().getAsString());
-                    acc.setStorageValue(key, value);
-                }
+            // Assign key addresses for later use
+            if (addr.equalsIgnoreCase("0x5B38Da6a701c568545dCfcB03FcB875f56beddC4")) {
+                senderAddress = address;
+            } else if (addr.equalsIgnoreCase("0x9876543210987654321098765432109876543210")) {
+                ISTCoinContractAddress = address;
+            } else if (addr.equalsIgnoreCase("0xfeedfacefeedfacefeedfacefeedfacefeedface")) {
+                recipientAddress = address;
             }
         }
-
-        Address senderAddress = Address.fromHexString("5B38Da6a701c568545dCfcB03FcB875f56beddC4");
-        Address ISTCoinContractAddress = Address.fromHexString("9876543210987654321098765432109876543210");
-        Address recipientAddress = Address.fromHexString("feedfacefeedfacefeedfacefeedfacefeedface");
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(byteArrayOutputStream);
@@ -87,9 +90,11 @@ public class ISTCoin_Test_Genesis {
         executor.sender(senderAddress);
         executor.receiver(ISTCoinContractAddress);
         executor.execute();
-        knownAddresses.add(ISTCoinContractAddress);
 
-        Bytes istCoinRuntime = simpleWorld.get(ISTCoinContractAddress).getCode();
+        Path runtimePath = Paths.get("runtimeISTCoin.txt");
+        String runtimeISTCoin = Files.readString(runtimePath).trim();
+        Bytes istCoinRuntime = Bytes.fromHexString(runtimeISTCoin);
+
 
         executor.code(istCoinRuntime);
         Bytes call0 = Bytes.fromHexString("71a2c180" + arg);
@@ -118,9 +123,7 @@ public class ISTCoin_Test_Genesis {
         Bytes call3 = Bytes.fromHexString(callData);
         executor.callData(call3);
         executor.execute();
-        if (analyzeIstCoinResult(byteArrayOutputStream)) {
-            recordTransaction(senderAddress, ISTCoinContractAddress, call3, byteArrayOutputStream);
-        }
+        analyzeIstCoinResult(byteArrayOutputStream);
 
         executor.code(istCoinRuntime);
         Bytes call4 = Bytes.fromHexString("537df3b6" + arg);
@@ -132,11 +135,7 @@ public class ISTCoin_Test_Genesis {
         executor.code(istCoinRuntime);
         executor.callData(call3);
         executor.execute();
-        if (analyzeIstCoinResult(byteArrayOutputStream)) {
-            recordTransaction(senderAddress, ISTCoinContractAddress, call3, byteArrayOutputStream);
-        }
-
-        saveBlock("block1.json", transactionLog, simpleWorld);
+        analyzeIstCoinResult(byteArrayOutputStream);
     }
 
     public static String extractStringFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
@@ -197,63 +196,20 @@ public class ISTCoin_Test_Genesis {
         BigInteger bigInt = BigInteger.valueOf(number);
         return String.format("%064x", bigInt);
     }
-    public static boolean analyzeIstCoinResult(ByteArrayOutputStream byteArrayOutputStream) {
+    public static void analyzeIstCoinResult(ByteArrayOutputStream byteArrayOutputStream) {
         String output = byteArrayOutputStream.toString();
         String[] lines = output.trim().split("\n");
         if (lines.length == 0) {
             System.out.println("No output to analyze.");
-            return false;
         } else {
             String lastLine = lines[lines.length - 1];
             if (lastLine.contains("\"opName\":\"REVERT\"")) {
                 System.out.println("Failed to do transaction, someone is on a Blacklist");
-                return false;
             } else if (lastLine.contains("\"opName\":\"RETURN\"")) {
                 System.out.println("Transaction passed in ISTCoin, no one is in BlackList");
-                return true;
             } else {
                 System.out.println("Unexpected EVM result");
-                return false;
             }
         }
     }
-
-    public static void recordTransaction(Address from, Address to, Bytes data, ByteArrayOutputStream trace) {
-        JsonObject tx = new JsonObject();
-        tx.addProperty("from", from.toHexString());
-        tx.addProperty("to", to.toHexString());
-        tx.addProperty("data", data.toHexString());
-        tx.addProperty("status", analyzeIstCoinResult(trace) ? "success" : "fail");
-        transactionLog.add(tx);
-    }
-
-    public static void saveBlock(String filename, List<JsonObject> transactions, SimpleWorld world) throws IOException {
-        JsonObject block = new JsonObject();
-        block.addProperty("block_hash", UUID.randomUUID().toString());
-        block.addProperty("previous_block_hash", "GENESIS");
-
-        JsonArray txs = new JsonArray();
-        for (JsonObject tx : transactions) txs.add(tx);
-        block.add("transactions", txs);
-
-        JsonObject state = new JsonObject();
-        for (Address addr : knownAddresses) {
-            MutableAccount acc = (MutableAccount) world.get(addr);
-            JsonObject accObj = new JsonObject();
-            accObj.addProperty("balance", acc.getBalance().toShortHexString());
-            accObj.addProperty("nonce", acc.getNonce());
-            if (!acc.getCode().isEmpty()) accObj.addProperty("code", acc.getCode().toHexString());
-            JsonObject storage = new JsonObject();
-            for (UInt256 key : acc.getUpdatedStorage().keySet()) {
-                storage.addProperty(key.toHexString(), acc.getStorageValue(key).toHexString());
-            }
-            if (!storage.entrySet().isEmpty()) accObj.add("storage", storage);
-            state.add(addr.toHexString(), accObj);
-        }
-        block.add("state", state);
-
-        Files.writeString(Paths.get(filename), block.toString());
-        System.out.println("✅ Block saved to " + filename);
-    }
-    
 }

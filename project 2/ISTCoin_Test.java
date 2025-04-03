@@ -52,6 +52,15 @@ public class ISTCoin_Test {
         System.out.println("  Nonce: "+senderAccount.getNonce());
         System.out.println();
 
+        Address receiverAddress = Address.fromHexString("feedfacefeedfacefeedfacefeedfacefeedface");
+        simpleWorld.createAccount(receiverAddress,0, Wei.fromEth(0));
+        MutableAccount receiverAccount = (MutableAccount) simpleWorld.get(receiverAddress);
+        System.out.println("Receiver Account");
+        System.out.println("  Address: "+receiverAccount.getAddress());
+        System.out.println("  Balance: "+receiverAccount.getBalance());
+        System.out.println("  Nonce: "+receiverAccount.getNonce());
+        System.out.println();
+
         Address ISTCoinContractAddress = Address.fromHexString("9876543210987654321098765432109876543210");
         simpleWorld.createAccount(ISTCoinContractAddress,0, Wei.fromEth(0));
         MutableAccount contractAccountIST = (MutableAccount) simpleWorld.get(ISTCoinContractAddress);
@@ -70,50 +79,48 @@ public class ISTCoin_Test {
         
         executor.code(Bytes.fromHexString(deployISTCoin));
         executor.sender(senderAddress);
-        executor.receiver(ISTCoinContractAddress);
+        executor.receiver(receiverAddress);
         System.out.println("Deploying ISTCoin Contract");
         executor.worldUpdater(simpleWorld.updater());
         executor.commitWorldState();
         executor.execute();
-        System.out.println("Deploying BlackList Contract");
 
-        String addressHex = "feedfacefeedfacefeedfacefeedfacefeedface";
-        String arg = String.format("%064x", new BigInteger(addressHex, 16));
+        String receiverHex = receiverAddress.toHexString().substring(2);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
-        executor.callData(Bytes.fromHexString("71a2c180"+ arg));
+        executor.callData(Bytes.fromHexString("71a2c180"+ padHexStringTo256Bit(receiverHex)));
         executor.execute();
         String isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
-        executor.callData(Bytes.fromHexString("44337ea1" + arg));
+        executor.callData(Bytes.fromHexString("44337ea1" + padHexStringTo256Bit(receiverHex)));
         executor.execute();
         String enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlackList(feedface...): " + enter);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
-        executor.callData(Bytes.fromHexString("71a2c180"+ arg));
+        executor.callData(Bytes.fromHexString("71a2c180"+ padHexStringTo256Bit(receiverHex)));
         executor.execute();
         isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));;
         String paddedAmount = padHexStringTo256Bit("0x2710");
-        String callData = "a9059cbb" + arg + paddedAmount;
+        String callData = "a9059cbb" + padHexStringTo256Bit(receiverHex) + paddedAmount;
         executor.callData(Bytes.fromHexString(callData));
         executor.execute();
         analyzeIstCoinResult(byteArrayOutputStream);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
-        executor.callData(Bytes.fromHexString("537df3b6" + arg));
+        executor.callData(Bytes.fromHexString("537df3b6" + padHexStringTo256Bit(receiverHex)));
         executor.execute();
         enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("removeFromBlacklist(address): " + enter);
 
         executor.code(Bytes.fromHexString(runtimeISTCoin));
         paddedAmount = padHexStringTo256Bit("0x2710");
-        callData = "a9059cbb" + arg + paddedAmount;
+        callData = "a9059cbb" + padHexStringTo256Bit(receiverHex)+ paddedAmount;
         executor.callData(Bytes.fromHexString(callData));
         executor.execute();
         analyzeIstCoinResult(byteArrayOutputStream);
