@@ -26,12 +26,14 @@ import java.math.BigInteger;
 import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
+
 public class ISTCoin_Test_Genesis {
 
     static List<JsonObject> transactionLog = new ArrayList<>();
     static Set<Address> knownAddresses = new HashSet<>();
 
     public static void main(String[] args) throws IOException {
+        Block block = new Block("7c41e7b1a3d8f9b4fc7286c58e4d5f7e8e7e2b1f9c4a7d3f0b1e6a9278c5d4ea\n");
         Path genesisPath = Paths.get("genesis.json");
         String genesisJson = Files.readString(genesisPath);
         JsonObject genesis = JsonParser.parseString(genesisJson).getAsJsonObject();
@@ -82,14 +84,13 @@ public class ISTCoin_Test_Genesis {
         String addressHex = recipientAddress.toHexString().substring(2);
         String arg = String.format("%064x", new BigInteger(addressHex, 16));
 
-        Path deployPath = Paths.get("deployISTCoin.txt");
-        String deployISTCoin = Files.readString(deployPath).trim();
-        executor.code(Bytes.fromHexString(deployISTCoin));
+        Bytes deployISTCoin = simpleWorld.get(ISTCoinContractAddress).getCode();
+        executor.code(deployISTCoin);
         executor.worldUpdater(simpleWorld.updater());
         executor.sender(senderAddress);
         executor.receiver(ISTCoinContractAddress);
         executor.execute();
-
+ 
         Path runtimePath = Paths.get("runtimeISTCoin.txt");
         String runtimeISTCoin = Files.readString(runtimePath).trim();
         Bytes istCoinRuntime = Bytes.fromHexString(runtimeISTCoin);
@@ -122,7 +123,11 @@ public class ISTCoin_Test_Genesis {
         Bytes call3 = Bytes.fromHexString(callData);
         executor.callData(call3);
         executor.execute();
-        analyzeIstCoinResult(byteArrayOutputStream);
+        if(analyzeIstCoinResult(byteArrayOutputStream)){
+            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, callData);
+            block.addTransaction(transaction);
+            System.out.println(transaction.toString());
+        }
 
         executor.code(istCoinRuntime);
         Bytes call4 = Bytes.fromHexString("537df3b6" + arg);
@@ -134,7 +139,11 @@ public class ISTCoin_Test_Genesis {
         executor.code(istCoinRuntime);
         executor.callData(call3);
         executor.execute();
-        analyzeIstCoinResult(byteArrayOutputStream);
+        if (analyzeIstCoinResult(byteArrayOutputStream)) {
+            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, callData);
+            block.addTransaction(transaction);
+            System.out.println(transaction.toString());
+        }
     }
 
     public static String extractStringFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
@@ -195,19 +204,23 @@ public class ISTCoin_Test_Genesis {
         BigInteger bigInt = BigInteger.valueOf(number);
         return String.format("%064x", bigInt);
     }
-    public static void analyzeIstCoinResult(ByteArrayOutputStream byteArrayOutputStream) {
+    public static Boolean analyzeIstCoinResult(ByteArrayOutputStream byteArrayOutputStream) {
         String output = byteArrayOutputStream.toString();
         String[] lines = output.trim().split("\n");
         if (lines.length == 0) {
             System.out.println("No output to analyze.");
+            return false;
         } else {
             String lastLine = lines[lines.length - 1];
             if (lastLine.contains("\"opName\":\"REVERT\"")) {
                 System.out.println("Failed to do transaction, someone is on a Blacklist");
+                return false;
             } else if (lastLine.contains("\"opName\":\"RETURN\"")) {
                 System.out.println("Transaction passed in ISTCoin, no one is in BlackList");
+                return true;
             } else {
                 System.out.println("Unexpected EVM result");
+                return false;
             }
         }
     }
