@@ -12,10 +12,9 @@ public class NodeBFT {
     private final int port;
     private final int N;
     private final int f;
-    public static List<Block> blockchain2 = new ArrayList<>();
+    public static List<Block> blockchain = new ArrayList<>();
     private final int CLIENTPORT = 6000;
     private final Contract contract = new Contract();
-    private final List<Transaction> transactions = new ArrayList<>();
 
     public NodeBFT(int nodeId, boolean isLeader, int port, int N, int f) {
         this.nodeId = nodeId;
@@ -30,9 +29,9 @@ public class NodeBFT {
         cryptoClass crypto = new cryptoClass();
         AuthenticatedPerfectLink apl = new AuthenticatedPerfectLink(network, crypto, nodeId);
 
-        if (blockchain2.isEmpty()) {
+        if (blockchain.isEmpty()) {
             Block block1 = new Block("0xc2abd98d5d011c420ba467bbb06a7d0ef591c03596a1dc5807a8c28b4b373b1a");
-            blockchain2.add(block1);
+            blockchain.add(block1);
         }
 
         Predicate<Map<Integer, String>> predicateC = messages -> {
@@ -58,7 +57,7 @@ public class NodeBFT {
             Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
 
             System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
-            blockchain2.get(0).addTransaction(transaction);
+            blockchain.get(0).addTransaction(transaction);
 
 
             Map<String, Object> epochState = new HashMap<>();
@@ -83,7 +82,7 @@ public class NodeBFT {
             Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
             System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
 
-            blockchain2.get(0).addTransaction(transaction);
+            blockchain.get(0).addTransaction(transaction);
             bec.propose("Tx1");
 
             // Leader collects responses from non-leaders
@@ -134,7 +133,11 @@ public class NodeBFT {
                     case "ACCEPT" -> {
                         System.out.println("[Node " + nodeId + "] Handling ACCEPT message...");
                         bec.handleAcceptMessage(Integer.parseInt(parts[1]), parts[2]);
-                        contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount());
+                        List<Transaction> transactions = blockchain.get(0).getTransactions();
+                        for (Transaction transaction : transactions) {
+                            System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
+                            contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount()); //executar transação nodes non-leader
+                        }
                         terminated = true;
                     }
                     case "COLLECTED" -> {
@@ -155,13 +158,20 @@ public class NodeBFT {
             String message = apl.receiveMessage();
             System.out.println("[Node " + nodeId + "] Received message: " + message + "from client");
             String[] parts = message.split(",");
-            Block block = blockchain2.get(0);
+            Block block = blockchain.get(0);
             List<Transaction> transactions = block.getTransactions();
-            // for (Transaction transaction : transactions) {
-            if(parts[0].equals("QUERY")&&transactions.get(0).getHash().equals(parts[1])){
-                apl.sendMessage("TRUE",InetAddress.getLocalHost(),CLIENTPORT);
-            } else {
-                apl.sendMessage("FALSE",InetAddress.getLocalHost(),CLIENTPORT);
+
+            for (Transaction transaction : transactions) {
+                System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
+                contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount()); //executar transação node leader
+            }
+
+            for (Transaction transaction : transactions) {              //Avisa se a transação está na blockchain
+                if(parts[0].equals("QUERY")&&transaction.get(0).getHash().equals(parts[1])){
+                    apl.sendMessage("TRUE",InetAddress.getLocalHost(),CLIENTPORT);          
+                } else {
+                    apl.sendMessage("FALSE",InetAddress.getLocalHost(),CLIENTPORT);
+                }
             }
         }
 
