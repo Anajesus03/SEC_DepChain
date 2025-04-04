@@ -86,7 +86,7 @@ public class ISTCoin_Test_Genesis {
         executor.code(deployISTCoin);
         executor.worldUpdater(simpleWorld.updater());
         executor.sender(senderAddress);
-        executor.receiver(recipientAddress);
+        executor.receiver(ISTCoinContractAddress);
         executor.execute();
  
         String runtimeISTCoin = extractRuntimeFromReturnData(byteArrayOutputStream);
@@ -183,6 +183,43 @@ public class ISTCoin_Test_Genesis {
             System.out.println(transaction.toString());
             System.out.println("DeepCoin transaction completed.");
         }
+
+        addressHex = ISTCoinContractAddress.toHexString().substring(2);
+        arg = String.format("%064x", new BigInteger(addressHex, 16));
+        // Convert the hex string back to a byte array
+        argBytes = Bytes.fromHexString(arg);
+        // Take the last 20 bytes (rightmost) — Ethereum addresses are 20 bytes
+        addressBytes = argBytes.slice(12, 20);
+        // Convert to Address
+        recoveredRecipient = Address.wrap(addressBytes);
+        recipientAccount = (MutableAccount) simpleWorld.get(recoveredRecipient);
+
+        if (!recipientAccount.getCode().isEmpty()) {
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            String callData = "a9059cbb" + arg + paddedAmount;
+            executor.code(istCoinAccount.getCode());
+            executor.sender(senderAddress);
+            executor.receiver(recoveredRecipient);
+            Bytes call3 = Bytes.fromHexString(callData);
+            executor.callData(call3);
+            executor.execute();
+            if(analyzeIstCoinResult(byteArrayOutputStream)){
+                Transaction transaction = new Transaction(senderAddress.toHexString(), recoveredRecipient.toHexString(), paddedAmount, callData);
+                block.addTransaction(transaction);
+                System.out.println(transaction.toString());
+            }
+        }else{
+            System.out.println("Not ISTCoin, using DeepCoin.");
+            MutableAccount senderAccount = (MutableAccount) simpleWorld.get(senderAddress);
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            senderAccount.setBalance(senderAccount.getBalance().subtract(Wei.of(new BigInteger(paddedAmount, 16))));
+            recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
+            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, "");
+            block.addTransaction(transaction);
+            System.out.println(transaction.toString());
+            System.out.println("DeepCoin transaction completed.");
+        }
+
     }
 
     public static String extractStringFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
