@@ -151,7 +151,7 @@ public class ByzantineEpochConsensus {
                 System.out.println("[Node " + nodeId + "] Sending ACCEPT message for value: " + message);
                 apl.sendMessage("ACCEPT,"+ nodeId +"," + message, InetAddress.getLocalHost(), 5000 + q);
             }
-            NodeBFT.blockchain.add(message);
+            //NodeBFT.blockchain.add(message);
             decided = true;
         } else{
             System.out.println("[Node " + nodeId + "] Not enough WRITE messages received for value: " + message);

@@ -69,6 +69,10 @@ public class Transaction {
         return amount;
     }
 
+    public String getHash() {
+        return hash;
+    }
+
 
     @Override
     public String toString() {

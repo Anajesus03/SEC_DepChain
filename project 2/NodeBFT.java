@@ -12,7 +12,10 @@ public class NodeBFT {
     private final int port;
     private final int N;
     private final int f;
-    public static List<String> blockchain = new ArrayList<>();
+    public static List<Block> blockchain2 = new ArrayList<>();
+    private final int CLIENTPORT = 6000;
+    private final Contract contract = new Contract();
+    private final List<Transaction> transactions = new ArrayList<>();
 
     public NodeBFT(int nodeId, boolean isLeader, int port, int N, int f) {
         this.nodeId = nodeId;
@@ -23,12 +26,15 @@ public class NodeBFT {
     }
 
     public void start() throws Exception {
-        // Initialize network, crypto, and authenticated perfect link
         networkClass network = new networkClass(port);
         cryptoClass crypto = new cryptoClass();
         AuthenticatedPerfectLink apl = new AuthenticatedPerfectLink(network, crypto, nodeId);
 
-        // Define the predicate C to check for valid states
+        if (blockchain2.isEmpty()) {
+            Block block1 = new Block("0xc2abd98d5d011c420ba467bbb06a7d0ef591c03596a1dc5807a8c28b4b373b1a");
+            blockchain2.add(block1);
+        }
+
         Predicate<Map<Integer, String>> predicateC = messages -> {
             int validStateCount = 0;
             for (String msg : messages.values()) {
@@ -39,23 +45,28 @@ public class NodeBFT {
             return validStateCount >= N - f;
         };
 
-        // Create the conditionalCollect instance
         conditionalCollect cc = new conditionalCollect(apl, isLeader, N, f, predicateC);
 
-        int ets = 1 + nodeId; // Epoch timestamp (same for all nodes in the same epoch)
-        // Initialize ByzantineEpochConsensus
+        int ets = 1 + nodeId; 
         ByzantineEpochConsensus bec = new ByzantineEpochConsensus(nodeId, N, f, ets, isLeader, apl, cc);
 
         // Initialize the node's state
         if(!isLeader){
             String message = apl.receiveMessage();
             String[] parts = message.split(",");
-            String value = parts[1];
+            System.out.println("[Node " + nodeId + "] Received Transaction: " + message);
+            Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+
+            System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
+            blockchain2.get(0).addTransaction(transaction);
+
+
             Map<String, Object> epochState = new HashMap<>();
             epochState.put("valts", ets);
-            epochState.put("val", value);
+            epochState.put("val", "Tx1");
             epochState.put("writeset", new HashSet<>());
             bec.init(epochState);
+
         } else {
             Map<String, Object> epochState = new HashMap<>();
             epochState.put("valts", ets);
@@ -69,8 +80,11 @@ public class NodeBFT {
         if (isLeader) {
             String message = apl.receiveMessage();
             String[] parts = message.split(",");
-            System.out.println("[Node " + nodeId + "] Proposing value: " + parts[1]);
-            bec.propose(parts[1]);
+            Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+            System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
+
+            blockchain2.get(0).addTransaction(transaction);
+            bec.propose("Tx1");
 
             // Leader collects responses from non-leaders
             System.out.println("[Node " + nodeId + "] Collecting responses from non-leaders...");
@@ -120,7 +134,7 @@ public class NodeBFT {
                     case "ACCEPT" -> {
                         System.out.println("[Node " + nodeId + "] Handling ACCEPT message...");
                         bec.handleAcceptMessage(Integer.parseInt(parts[1]), parts[2]);
-                        blockchain.add(parts[2]);
+                        contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount());
                         terminated = true;
                     }
                     case "COLLECTED" -> {
@@ -134,17 +148,20 @@ public class NodeBFT {
         }
 
 
-        System.out.println("[Node " + nodeId + "] Consensus reached. Blockchain: " + blockchain);
+        System.out.println("[Node " + nodeId + "] Consensus reached.");
 
         if(isLeader){
             System.out.println("[Node " + nodeId + "] Leader is here!!!!!!!!");
             String message = apl.receiveMessage();
             System.out.println("[Node " + nodeId + "] Received message: " + message + "from client");
             String[] parts = message.split(",");
-            if(parts[0].equals("QUERY")&&blockchain.contains(parts[1])){
-                apl.sendMessage("TRUE",InetAddress.getLocalHost(),6000);
+            Block block = blockchain2.get(0);
+            List<Transaction> transactions = block.getTransactions();
+            // for (Transaction transaction : transactions) {
+            if(parts[0].equals("QUERY")&&transactions.get(0).getHash().equals(parts[1])){
+                apl.sendMessage("TRUE",InetAddress.getLocalHost(),CLIENTPORT);
             } else {
-                apl.sendMessage("FALSE",InetAddress.getLocalHost(),6000);
+                apl.sendMessage("FALSE",InetAddress.getLocalHost(),CLIENTPORT);
             }
         }
 

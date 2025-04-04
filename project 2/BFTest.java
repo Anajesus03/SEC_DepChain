@@ -8,53 +8,70 @@ public class BFTest {
     public static void main(String[] args) throws Exception {
         int N = 4; // Total number of nodes
         int f = 1; // Number of faulty nodes
-        int LEADERPORT = 5000; // Port for the leader
+        int LEADERPORT = 5000; // Base port for nodes
+        Contract contract = new Contract();
+        String clientAddress = contract.getClientAddress(); 
+        String receiverAddress = contract.getReceiverAddress();
+        String amount = "100";
+        String data = contract.getData(receiverAddress, amount);
 
-        // Add a shutdown hook to clean up processes
+        // Shutdown hook for clean process termination
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\nShutting down all nodes...");
-            for (Process process : processes) {
-                process.destroy();
-            }
+            System.out.println("\nShutting down all processes...");
+            processes.forEach(Process::destroy);
         }));
 
-        // Start the leader node (nodeId = 1)
-        startNode(1, LEADERPORT, N, f, true);
-
-        // Start non-leader nodes (nodeId = 2, 3, ...)
-        for (int i = 1; i <= (N - 1); i++) {
-            int nodePort = LEADERPORT + i; // Assign unique ports to non-leaders
-            int nodeId = i + 1;
-            startNode(nodeId, nodePort, N, f, false);
+        // Start nodes
+        startNode(1, LEADERPORT, N, f, true); // Leader
+        for (int i = 2; i <= N; i++) {
+            startNode(i, LEADERPORT + i - 1, N, f, false); // Followers
         }
 
-        ProcessBuilder clientPb = new ProcessBuilder("java", "ClientBFT", "1", String.valueOf(N), "Test Message 123...");
-        clientPb.inheritIO();
-        processes.add(clientPb.start());
+        // Start clients after nodes are up
+        Thread.sleep(2000);
+        startClient(1, N, clientAddress, receiverAddress, amount, data);
 
-        System.out.println("All nodes started. Waiting for consensus...");
-        
-        // Keep the main thread alive while nodes run
-        Thread.sleep(20000); 
+        System.out.println("Started " + N + " nodes and 1 clients. System running...");
+        Thread.sleep(30000); // Extended runtime for transaction processing
     }
 
     private static void startNode(int nodeId, int port, int N, int f, boolean isLeader) {
-        ProcessBuilder pb = new ProcessBuilder("java", "NodeBFT",
-                String.valueOf(nodeId),
-                String.valueOf(isLeader),
-                String.valueOf(port),
-                String.valueOf(N),
-                String.valueOf(f));
-
-        pb.inheritIO(); // Redirect output to the parent process
-
         try {
-            Process process = pb.start();
+            Process process = new ProcessBuilder("java", "NodeBFT",
+                    String.valueOf(nodeId),
+                    String.valueOf(isLeader),
+                    String.valueOf(port),
+                    String.valueOf(N),
+                    String.valueOf(f))
+                    .inheritIO()
+                    .start();
+            
             processes.add(process);
-            System.out.println("Started Node " + nodeId + " (Leader: " + isLeader + ") on port " + port);
+            System.out.printf("Node %d started (Leader: %b) on port %d%n", 
+                            nodeId, isLeader, port);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.printf("Failed to start Node %d: %s%n", nodeId, e.getMessage());
+        }
+    }
+
+    private static void startClient(int clientId, int N, String sender, 
+                                 String receiver, String amount, String data) {
+        try {
+            Process process = new ProcessBuilder("java", "ClientBFT",
+                    String.valueOf(clientId),
+                    String.valueOf(N),
+                    sender,
+                    receiver,
+                    amount,
+                    data)
+                    .inheritIO()
+                    .start();
+            
+            processes.add(process);
+            System.out.printf("Client %d sending %s from %s to %s%n", 
+                           clientId, amount, sender, receiver);
+        } catch (IOException e) {
+            System.err.printf("Failed to start Client %d: %s%n", clientId, e.getMessage());
         }
     }
 }
-
