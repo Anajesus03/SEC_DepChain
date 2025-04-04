@@ -63,7 +63,6 @@ public class ISTCoin_Test_Genesis {
             if (account.has("code")) {
                 acc.setCode(Bytes.fromHexString(account.get("code").getAsString()));
             }
-
             // Assign key addresses for later use
             if (addr.equalsIgnoreCase("0x5B38Da6a701c568545dCfcB03FcB875f56beddC4")) {
                 senderAddress = address;
@@ -73,7 +72,6 @@ public class ISTCoin_Test_Genesis {
                 recipientAddress = address;
             }
         }
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(byteArrayOutputStream);
         StandardJsonTracer tracer = new StandardJsonTracer(printStream, true, true, true, true);
@@ -88,61 +86,102 @@ public class ISTCoin_Test_Genesis {
         executor.code(deployISTCoin);
         executor.worldUpdater(simpleWorld.updater());
         executor.sender(senderAddress);
-        executor.receiver(ISTCoinContractAddress);
+        executor.receiver(recipientAddress);
         executor.execute();
  
-        Path runtimePath = Paths.get("runtimeISTCoin.txt");
-        String runtimeISTCoin = Files.readString(runtimePath).trim();
+        String runtimeISTCoin = extractRuntimeFromReturnData(byteArrayOutputStream);
         Bytes istCoinRuntime = Bytes.fromHexString(runtimeISTCoin);
+        MutableAccount istCoinAccount = (MutableAccount) simpleWorld.get(ISTCoinContractAddress);
+        istCoinAccount.setCode(istCoinRuntime);
 
-
-        executor.code(istCoinRuntime);
+        executor.code(istCoinAccount.getCode());
         Bytes call0 = Bytes.fromHexString("71a2c180" + arg);
         executor.callData(call0);
         executor.execute();
         String isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
-        executor.code(istCoinRuntime);
+        executor.code(istCoinAccount.getCode());
         Bytes call1 = Bytes.fromHexString("44337ea1" + arg);
         executor.callData(call1);
         executor.execute();
         String enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlackList(feedface...): " + enter);
 
-        executor.code(istCoinRuntime);
+        executor.code(istCoinAccount.getCode());
         Bytes call2 = Bytes.fromHexString("71a2c180" + arg);
         executor.callData(call2);
         executor.execute();
         isBlacklisted = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("isBlacklisted(feedface...): " + isBlacklisted);
 
-        String paddedAmount = padHexStringTo256Bit("0x2710");
-        String callData = "a9059cbb" + arg + paddedAmount;
-        executor.code(istCoinRuntime);
-        Bytes call3 = Bytes.fromHexString(callData);
-        executor.callData(call3);
-        executor.execute();
-        if(analyzeIstCoinResult(byteArrayOutputStream)){
-            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, callData);
+        // Convert the hex string back to a byte array
+        Bytes argBytes = Bytes.fromHexString(arg);
+        // Take the last 20 bytes (rightmost) — Ethereum addresses are 20 bytes
+        Bytes addressBytes = argBytes.slice(12, 20);
+        // Convert to Address
+        Address recoveredRecipient = Address.wrap(addressBytes);
+        MutableAccount recipientAccount = (MutableAccount) simpleWorld.get(recoveredRecipient);
+
+        if (!recipientAccount.getCode().isEmpty() ) {
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            String callData = "a9059cbb" + arg + paddedAmount;
+            executor.code(istCoinAccount.getCode());
+            executor.sender(senderAddress);
+            executor.receiver(recoveredRecipient);
+            Bytes call3 = Bytes.fromHexString(callData);
+            executor.callData(call3);
+            executor.execute();
+            if(analyzeIstCoinResult(byteArrayOutputStream)){
+                Transaction transaction = new Transaction(senderAddress.toHexString(), recoveredRecipient.toHexString(), paddedAmount, callData);
+                block.addTransaction(transaction);
+                System.out.println(transaction.toString());
+                System.out.println("ISTCoin transaction completed.");
+            }
+        }
+        else{
+            System.out.println("Not ISTCoin, using DeepCoin.");
+            MutableAccount senderAccount = (MutableAccount) simpleWorld.get(senderAddress);
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            senderAccount.setBalance(senderAccount.getBalance().subtract(Wei.of(new BigInteger(paddedAmount, 16))));
+            recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
+            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, "");
             block.addTransaction(transaction);
             System.out.println(transaction.toString());
+            System.out.println("DeepCoin transaction completed.");
         }
 
-        executor.code(istCoinRuntime);
+        executor.code(istCoinAccount.getCode());
         Bytes call4 = Bytes.fromHexString("537df3b6" + arg);
         executor.callData(call4);
         executor.execute();
         enter = extractStringFromReturnData(byteArrayOutputStream);
         System.out.println("removeFromBlacklist(address): " + enter);
 
-        executor.code(istCoinRuntime);
-        executor.callData(call3);
-        executor.execute();
-        if (analyzeIstCoinResult(byteArrayOutputStream)) {
-            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, callData);
+        if (!recipientAccount.getCode().isEmpty()) {
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            String callData = "a9059cbb" + arg + paddedAmount;
+            executor.code(istCoinAccount.getCode());
+            executor.sender(senderAddress);
+            executor.receiver(recoveredRecipient);
+            Bytes call3 = Bytes.fromHexString(callData);
+            executor.callData(call3);
+            executor.execute();
+            if(analyzeIstCoinResult(byteArrayOutputStream)){
+                Transaction transaction = new Transaction(senderAddress.toHexString(), recoveredRecipient.toHexString(), paddedAmount, callData);
+                block.addTransaction(transaction);
+                System.out.println(transaction.toString());
+            }
+        }else{
+            System.out.println("Not ISTCoin, using DeepCoin.");
+            MutableAccount senderAccount = (MutableAccount) simpleWorld.get(senderAddress);
+            String paddedAmount = padHexStringTo256Bit("0x2710");
+            senderAccount.setBalance(senderAccount.getBalance().subtract(Wei.of(new BigInteger(paddedAmount, 16))));
+            recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
+            Transaction transaction = new Transaction(senderAddress.toHexString(), recipientAddress.toHexString(), paddedAmount, "");
             block.addTransaction(transaction);
             System.out.println(transaction.toString());
+            System.out.println("DeepCoin transaction completed.");
         }
     }
 
@@ -178,6 +217,17 @@ public class ISTCoin_Test_Genesis {
         int size = Integer.decode(stack.get(stack.size() - 2).getAsString());
         String returnData = memory.substring(2 + offset * 2, 2 + offset * 2 + size * 2);
         return Integer.decode("0x" + returnData);
+    }
+
+    public static String extractRuntimeFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
+        String[] lines = byteArrayOutputStream.toString().split("\r?\n");
+        JsonObject jsonObject = JsonParser.parseString(lines[lines.length - 1]).getAsJsonObject();
+        String memory = jsonObject.get("memory").getAsString();
+        JsonArray stack = jsonObject.get("stack").getAsJsonArray();
+        int offset = Integer.decode(stack.get(stack.size() - 1).getAsString());
+        int size = Integer.decode(stack.get(stack.size() - 2).getAsString());
+        String returnData = memory.substring(2 + offset * 2, 2 + offset * 2 + size * 2);
+        return returnData;
     }
 
     public static byte[] hexStringToByteArray(String hexString) {
