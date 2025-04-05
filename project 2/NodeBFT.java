@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.hyperledger.besu.datatypes.Address;
 import java.util.function.Predicate;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 
@@ -15,6 +16,7 @@ public class NodeBFT {
     private final int f;
     public static List<Block> blockchain = new ArrayList<>();
     private final int CLIENTPORT = 6000;
+    private Contract contract;
 
     public NodeBFT(int nodeId, boolean isLeader, int port, int N, int f) {
         this.nodeId = nodeId;
@@ -28,7 +30,7 @@ public class NodeBFT {
         networkClass network = new networkClass(port);
         cryptoClass crypto = new cryptoClass();
         AuthenticatedPerfectLink apl = new AuthenticatedPerfectLink(network, crypto, nodeId);
-        Contract contract = new Contract();
+        contract = new Contract();
 
         if (blockchain.isEmpty()) {
             Block block1 = new Block("0xc2abd98d5d011c420ba467bbb06a7d0ef591c03596a1dc5807a8c28b4b373b1a");

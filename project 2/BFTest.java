@@ -11,8 +11,8 @@ public class BFTest {
         int LEADERPORT = 5000; // Base port for nodes
         Contract contract = new Contract();
         String clientAddress = contract.getClientAddress(); 
-        String receiverAddress = contract.getISTCoinContractAddress();
-        String amount = "100";
+        String receiverAddress = contract.getReceiverAddress();
+        String amount = "0x100";
         String data = contract.getData(receiverAddress, amount);
 
         // Shutdown hook for clean process termination

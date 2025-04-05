@@ -149,6 +149,8 @@ public class Contract {
             if (analyzeIstCoinResult(byteArrayOutputStream)) {
                 Transaction tx = new Transaction(from.toHexString(), to.toHexString(), paddedAmount, callData);
                 block.addTransaction(tx);
+                getSenderBalance();
+                getISTCoinBalance();
                 System.out.println(tx);
                 System.out.println("ISTCoin transaction completed.");
             }
@@ -159,6 +161,8 @@ public class Contract {
             recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
             Transaction tx = new Transaction(from.toHexString(), to.toHexString(), paddedAmount, "");
             block.addTransaction(tx);
+            getSenderBalance();
+            getReceiverBalance();
             System.out.println(tx);
             System.out.println("DeepCoin transaction completed.");
         }
@@ -178,6 +182,7 @@ public class Contract {
         Address address = Address.fromHexString(arg);
         MutableAccount recipientAccount = (MutableAccount) simpleWorld.get(address);
         String paddedAmount = padHexStringTo256Bit(hexAmount);
+        arg = String.format("%064x", new BigInteger(address.toHexString().substring(2), 16));
         if (!recipientAccount.getCode().isEmpty()) {
             String callData = "a9059cbb" + arg + paddedAmount;
             return callData;
@@ -185,6 +190,22 @@ public class Contract {
             System.out.println("Not ISTCoin, using DeepCoin.");
             return "";
         }
+    }
+
+    public static void getSenderBalance(){
+        Address address = Address.fromHexString(senderAddress.toHexString());
+        MutableAccount senderAccount = (MutableAccount) simpleWorld.get(address);
+        System.out.println("Sender Account Balance "+ senderAccount.getBalance().toString());
+    }
+    public static void getReceiverBalance(){
+        Address address = Address.fromHexString(recipientAddress.toHexString());
+        MutableAccount recipientAccount = (MutableAccount) simpleWorld.get(address);
+        System.out.println("Receiver Account Balance "+ recipientAccount.getBalance().toString());
+    }
+    public static void getISTCoinBalance(){
+        Address address = Address.fromHexString(ISTCoinContractAddress.toHexString());
+        MutableAccount istCoinAccount = (MutableAccount) simpleWorld.get(address);
+        System.out.println("ISTCoin Account Balance "+ istCoinAccount.getBalance().toString());
     }
 
     public static String extractStringFromReturnData(ByteArrayOutputStream byteArrayOutputStream) {
