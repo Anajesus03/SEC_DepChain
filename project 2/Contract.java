@@ -36,11 +36,9 @@ public class Contract {
     static EVMExecutor executor;
     static MutableAccount istCoinAccount;
     static ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    static Block block;
 
 
     public Contract() throws IOException {
-        block = new Block("7c41e7b1a3d8f9b4fc7286c58e4d5f7e8e7e2b1f9c4a7d3f0b1e6a9278c5d4ea\n");
         Path genesisPath = Paths.get("genesis.json");
         String genesisJson = Files.readString(genesisPath);
         JsonObject genesis = JsonParser.parseString(genesisJson).getAsJsonObject();
@@ -156,7 +154,6 @@ public class Contract {
 
             if (analyzeIstCoinResult(byteArrayOutputStream)) {
                 Transaction tx = new Transaction(from.toHexString(), to.toHexString(), paddedAmount, callData);
-                block.addTransaction(tx);
                 getSenderBalance();
                 getISTCoinBalance();
                 System.out.println(tx);
@@ -168,7 +165,6 @@ public class Contract {
             senderAcc.setBalance(senderAcc.getBalance().subtract(Wei.of(new BigInteger(paddedAmount, 16))));
             recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
             Transaction tx = new Transaction(from.toHexString(), to.toHexString(), paddedAmount, "");
-            block.addTransaction(tx);
             getSenderBalance();
             getReceiverBalance();
             System.out.println(tx);
@@ -294,7 +290,7 @@ public class Contract {
         } else {
             String lastLine = lines[lines.length - 1];
             if (lastLine.contains("\"opName\":\"REVERT\"")) {
-                System.out.println("Failed to do transaction, someone is on a Blacklist");
+                System.out.println("Failed to do transaction using ISTCoin, someone is on a Blacklist!!!!!!!!");
                 return false;
             } else if (lastLine.contains("\"opName\":\"RETURN\"")) {
                 System.out.println("Transaction passed in ISTCoin, no one is in BlackList");
