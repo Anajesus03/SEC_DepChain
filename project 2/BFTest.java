@@ -10,8 +10,8 @@ public class BFTest {
         int f = 1; // Number of faulty nodes
         int LEADERPORT = 5000; // Base port for nodes
         Contract contract = new Contract();
-        String clientAddress = contract.getClientAddress(); 
-        String receiverAddress = contract.getReceiverAddress();
+        String clientAddress = contract.getReceiverAddress(); 
+        String receiverAddress = contract.getClientAddress(); 
         String amount = "0x100";
         String data = contract.getData(receiverAddress, amount);
 

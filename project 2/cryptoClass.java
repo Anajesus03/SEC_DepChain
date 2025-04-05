@@ -39,6 +39,10 @@ public class cryptoClass {
         return keyPair.getPublic();
     }
 
+    public PrivateKey getPrivateKey() {
+        return keyPair.getPrivate();
+    }
+
     public int getPublicKeyLength() {
         return keyPair.getPublic().getEncoded().length;
     }
