@@ -160,7 +160,7 @@ public class Contract {
                 System.out.println("ISTCoin transaction completed.");
             }
         } else {
-            System.out.println("Not ISTCoin, using DeepCoin.");
+            System.out.println("Not ISTCoin, using DepCoin.");
             MutableAccount senderAcc = (MutableAccount) simpleWorld.get(from);
             senderAcc.setBalance(senderAcc.getBalance().subtract(Wei.of(new BigInteger(paddedAmount, 16))));
             recipientAccount.setBalance(recipientAccount.getBalance().add(Wei.of(new BigInteger(paddedAmount, 16))));
@@ -168,7 +168,7 @@ public class Contract {
             getSenderBalance();
             getReceiverBalance();
             System.out.println(tx);
-            System.out.println("DeepCoin transaction completed.");
+            System.out.println("DepCoin transaction completed.");
         }
     }
 
@@ -191,7 +191,7 @@ public class Contract {
             String callData = "a9059cbb" + arg + paddedAmount;
             return callData;
         } else {
-            System.out.println("Not ISTCoin, using DeepCoin.");
+            System.out.println("Not ISTCoin, using DepCoin.");
             return "";
         }
     }
