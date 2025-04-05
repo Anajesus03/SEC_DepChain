@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import org.hyperledger.besu.evm.tracing.OperationTracer;
 
 public class NodeBFT {
     private final int nodeId;
@@ -14,7 +15,6 @@ public class NodeBFT {
     private final int f;
     public static List<Block> blockchain = new ArrayList<>();
     private final int CLIENTPORT = 6000;
-    private final Contract contract = new Contract();
 
     public NodeBFT(int nodeId, boolean isLeader, int port, int N, int f) {
         this.nodeId = nodeId;
@@ -28,6 +28,7 @@ public class NodeBFT {
         networkClass network = new networkClass(port);
         cryptoClass crypto = new cryptoClass();
         AuthenticatedPerfectLink apl = new AuthenticatedPerfectLink(network, crypto, nodeId);
+        Contract contract = new Contract();
 
         if (blockchain.isEmpty()) {
             Block block1 = new Block("0xc2abd98d5d011c420ba467bbb06a7d0ef591c03596a1dc5807a8c28b4b373b1a");
@@ -54,7 +55,12 @@ public class NodeBFT {
             String message = apl.receiveMessage();
             String[] parts = message.split(",");
             System.out.println("[Node " + nodeId + "] Received Transaction: " + message);
-            Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+            Transaction transaction = null;
+            if (parts.length < 5) {
+                transaction = new Transaction(parts[1], parts[2], parts[3], "");
+            }else{
+                transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+            }
 
             System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
             blockchain.get(0).addTransaction(transaction);
@@ -79,7 +85,13 @@ public class NodeBFT {
         if (isLeader) {
             String message = apl.receiveMessage();
             String[] parts = message.split(",");
-            Transaction transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+            System.out.println("Message from client: " + message);
+            Transaction transaction = null;
+            if (parts.length < 5) {
+                transaction = new Transaction(parts[1], parts[2], parts[3], "");
+            }else{
+                transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+            }
             System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
 
             blockchain.get(0).addTransaction(transaction);
@@ -136,7 +148,7 @@ public class NodeBFT {
                         List<Transaction> transactions = blockchain.get(0).getTransactions();
                         for (Transaction transaction : transactions) {
                             System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
-                            contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount()); //executar transação nodes non-leader
+                            contract.transfer(transaction.getSenderAddress(), transaction.getReceiverAddress(), transaction.getAmount()); //executar transação nodes non-leader
                         }
                         terminated = true;
                     }
@@ -163,11 +175,11 @@ public class NodeBFT {
 
             for (Transaction transaction : transactions) {
                 System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
-                contract.transfer(transaction.getSender(), transaction.getReceiver(), transaction.getAmount()); //executar transação node leader
+                contract.transfer(transaction.getSenderAddress(), transaction.getReceiverAddress(), transaction.getAmount()); //executar transação node leader
             }
 
             for (Transaction transaction : transactions) {              //Avisa se a transação está na blockchain
-                if(parts[0].equals("QUERY")&&transaction.get(0).getHash().equals(parts[1])){
+                if(parts[0].equals("QUERY")&&transaction.getHash().equals(parts[1])){
                     apl.sendMessage("TRUE",InetAddress.getLocalHost(),CLIENTPORT);          
                 } else {
                     apl.sendMessage("FALSE",InetAddress.getLocalHost(),CLIENTPORT);
@@ -181,7 +193,7 @@ public class NodeBFT {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         if (args.length < 5) {
             System.out.println("Usage: Node <nodeId> <isLeader> <port> <N> <f>");
             return;
@@ -192,7 +204,7 @@ public class NodeBFT {
         int port = Integer.parseInt(args[2]);
         int N = Integer.parseInt(args[3]);
         int f = Integer.parseInt(args[4]);
-
+        //contract = new Contract(); 
         try {
             NodeBFT node = new NodeBFT(nodeId, isLeader, port, N, f);
             node.start();

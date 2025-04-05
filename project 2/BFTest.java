@@ -11,7 +11,7 @@ public class BFTest {
         int LEADERPORT = 5000; // Base port for nodes
         Contract contract = new Contract();
         String clientAddress = contract.getClientAddress(); 
-        String receiverAddress = contract.getReceiverAddress();
+        String receiverAddress = contract.getISTCoinContractAddress();
         String amount = "100";
         String data = contract.getData(receiverAddress, amount);
 
@@ -36,21 +36,26 @@ public class BFTest {
     }
 
     private static void startNode(int nodeId, int port, int N, int f, boolean isLeader) {
+        List<String> command = new ArrayList<>();
+        command.add("java");
+        command.add("-cp");
+        command.add(".:/home/rodrigo/Documents/Faculdade/SEC/lab/lab2/jars/*");  // Add your jars
+        command.add("NodeBFT");
+        command.add(String.valueOf(nodeId));
+        command.add(String.valueOf(isLeader));
+        command.add(String.valueOf(port));
+        command.add(String.valueOf(N));
+        command.add(String.valueOf(f));
+    
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.inheritIO(); // redirect output
+    
         try {
-            Process process = new ProcessBuilder("java", "NodeBFT",
-                    String.valueOf(nodeId),
-                    String.valueOf(isLeader),
-                    String.valueOf(port),
-                    String.valueOf(N),
-                    String.valueOf(f))
-                    .inheritIO()
-                    .start();
-            
+            Process process = pb.start();
+            System.out.println("Started Node " + nodeId + " (Leader: " + isLeader + ") on port " + port);
             processes.add(process);
-            System.out.printf("Node %d started (Leader: %b) on port %d%n", 
-                            nodeId, isLeader, port);
         } catch (IOException e) {
-            System.err.printf("Failed to start Node %d: %s%n", nodeId, e.getMessage());
+            e.printStackTrace();
         }
     }
 

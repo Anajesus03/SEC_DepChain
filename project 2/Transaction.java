@@ -3,6 +3,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import org.hyperledger.besu.datatypes.Address;
 import java.util.Base64;
 
 public class Transaction {
@@ -61,8 +62,17 @@ public class Transaction {
         return sender;
     }
 
+    public Address getSenderAddress() {
+        
+        return Address.fromHexString(sender);
+    }
+
     public String getReceiver() {
         return receiver;
+    }
+
+    public Address getReceiverAddress() {
+        return Address.fromHexString(receiver);
     }
 
     public String getAmount() {

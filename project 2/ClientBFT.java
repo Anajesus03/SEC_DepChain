@@ -18,7 +18,7 @@ public class ClientBFT {
     public void sendTransaction(String receiver, String amount, String data) throws Exception {
         // Create transaction string: sender,receiver,amount,data
         String transaction = clientAddress + "," + receiver + "," + amount + "," + data;
-            
+        System.out.println("[Client] Sending transaction: " + transaction);
         for(int nodeId=1; nodeId<=N; nodeId++){
                 String message = "PROPOSE," + transaction;
                 apl.sendMessage(message, InetAddress.getLocalHost(), LEADERPORT+(nodeId-1));
