@@ -49,8 +49,11 @@ The project uses the following dependencies:
 - **Maven Compiler Plugin** for Java 17 compilation
 
 ## Project 2
-- Compile Code: javac -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" *.java 
-
-- Execute BFTest: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" BFTest  #(Inside BFTest when creating processes for NodeBFT, you have to put the path of jars in line 81.)
-
-- Execute ISTCoin_Tests: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" ISTCoin_Tests
+- **Linux**:
+    - Compile Code: javac -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" *.java 
+    - Execute BFTest: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" BFTest  #(Inside BFTest when creating processes for NodeBFT, you have to put the path of jars in line 81.)
+    - Execute ISTCoin_Tests: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" ISTCoin_Tests
+- **Windows**:
+    - Compile Code: javac -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*;." *.java 
+    - Execute BFTest: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*;." BFTest  #(Inside BFTest when creating processes for NodeBFT, you have to put the path of jars in line 81.)
+    - Execute ISTCoin_Tests: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*;." ISTCoin_Tests
