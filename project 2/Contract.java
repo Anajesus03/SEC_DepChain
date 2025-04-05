@@ -79,9 +79,6 @@ public class Contract {
         executor = EVMExecutor.evm(EvmSpecVersion.CANCUN);
         executor.tracer(tracer);
 
-        String addressHex = recipientAddress.toHexString().substring(2);
-        String arg = String.format("%064x", new BigInteger(addressHex, 16));
-
         Bytes deployISTCoin = simpleWorld.get(ISTCoinContractAddress).getCode();
         executor.code(deployISTCoin);
         executor.worldUpdater(simpleWorld.updater());
@@ -95,12 +92,23 @@ public class Contract {
         istCoinAccount.setCode(istCoinRuntime);
     }
 
+    public static void main(String[] args) throws IOException {
+        Contract contract = new Contract();
+        System.out.println("ISTCoin Contract Address: " + ISTCoinContractAddress.toHexString());
+        System.out.println("Sender Address: " + senderAddress.toHexString());
+        System.out.println("Recipient Address: " + recipientAddress.toHexString());
+        contract.transfer(senderAddress, recipientAddress, "0x100");
+        contract.transfer(recipientAddress, senderAddress, "0x200");
+        contract.transfer(senderAddress, ISTCoinContractAddress, "0x300");
+
+    }
+
     public static void isBlacklisted(Address address) {
         MutableAccount recipientAccount = (MutableAccount) simpleWorld.get(address);
         String addressHex = recipientAccount.getAddress().toHexString().substring(2);
         String arg = String.format("%064x", new BigInteger(addressHex, 16));
         executor.code(istCoinAccount.getCode());
-        Bytes call = Bytes.fromHexString("71a2c180" + arg);
+        Bytes call = Bytes.fromHexString("60b73a3e" + arg);
         executor.callData(call);
         executor.execute();
         String result = extractStringFromReturnData(byteArrayOutputStream);
@@ -115,7 +123,7 @@ public class Contract {
         Bytes call = Bytes.fromHexString("44337ea1" + arg);
         executor.callData(call);
         executor.execute();
-        String result = extractStringFromReturnData(byteArrayOutputStream);
+        Boolean result = extractBooleanFromReturnData(byteArrayOutputStream);
         System.out.println("addToBlacklist: " + result);
     }
 
@@ -127,7 +135,7 @@ public class Contract {
         Bytes call = Bytes.fromHexString("537df3b6" + arg);
         executor.callData(call);
         executor.execute();
-        String result = extractStringFromReturnData(byteArrayOutputStream);
+        Boolean result = extractBooleanFromReturnData(byteArrayOutputStream);
         System.out.println("removeFromBlacklist: " + result);
     }
 
