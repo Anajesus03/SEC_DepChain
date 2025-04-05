@@ -16,9 +16,9 @@ public class NodeBFT {
     private final int f;
     public static List<Block> blockchain = new ArrayList<>();
     private final int CLIENTPORT = 6000;
-    // private final CLIENTPORT2 = 6001;
+    private final int CLIENTPORT2 = 6001;
     private Contract contract;
-    // private final numberofClients;
+    private final int numberofClients=2;
 
     public NodeBFT(int nodeId, boolean isLeader, int port, int N, int f) {
         this.nodeId = nodeId;
@@ -56,28 +56,32 @@ public class NodeBFT {
 
         // Initialize the node's state
         if(!isLeader){
-            // while(messagesreceived != nuberofClients){
-            String message = apl.receiveMessage();
-            String[] parts = message.split(",");
-            System.out.println("[Node " + nodeId + "] Received Transaction: " + message);
-            Transaction transaction = null;
-            if (parts.length < 5) {
-                transaction = new Transaction(parts[1], parts[2], parts[3], "");
-                transaction.signTransaction(crypto.getPrivateKey());
+            int messagesreceived = 0;
+            while(messagesreceived != numberofClients){
+                System.out.println("[Node " + nodeId + "] Waiting for transaction messages...");
+                String message = apl.receiveMessage();
+                String[] parts = message.split(",");
+                System.out.println("[Node " + nodeId + "] Received Transaction: " + message);
+                Transaction transaction = null;
+                if (parts.length < 5) {
+                    transaction = new Transaction(parts[1], parts[2], parts[3], "");
+                    transaction.signTransaction(crypto.getPrivateKey());
 
-            }else{
-                transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
-                transaction.signTransaction(crypto.getPrivateKey());
+                }else{
+                    transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+                    transaction.signTransaction(crypto.getPrivateKey());
 
+                }
+
+                System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
+                blockchain.get(0).addTransaction(transaction);
+                messagesreceived++;
             }
-
-            System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
-            blockchain.get(0).addTransaction(transaction);
 
 
             Map<String, Object> epochState = new HashMap<>();
             epochState.put("valts", ets);
-            epochState.put("val", "Tx1"); // mudar 
+            epochState.put("val", "Tx1-Tx2"); // mudar 
             epochState.put("writeset", new HashSet<>());
             bec.init(epochState);
 
@@ -92,23 +96,29 @@ public class NodeBFT {
 
         // Leader proposes a value
         if (isLeader) {
-            String message = apl.receiveMessage();
-            String[] parts = message.split(",");
-            System.out.println("Message from client: " + message);
-            Transaction transaction = null;
+            int messagesreceivedLeader = 0;
+            while(messagesreceivedLeader != numberofClients){
+                String message = apl.receiveMessage();
+                String[] parts = message.split(",");
+                System.out.println("Message from client: " + message);
+                Transaction transaction = null;
 
-            if (parts.length < 5) {
-                transaction = new Transaction(parts[1], parts[2], parts[3], "");
-                transaction.signTransaction(crypto.getPrivateKey());
-            }else{
-                transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
-                transaction.signTransaction(crypto.getPrivateKey());
+                if (parts.length < 5) {
+                    transaction = new Transaction(parts[1], parts[2], parts[3], "");
+                    transaction.signTransaction(crypto.getPrivateKey());
+                }else{
+                    transaction = new Transaction(parts[1], parts[2], parts[3], parts[4]);
+                    transaction.signTransaction(crypto.getPrivateKey());
+                }
+
+                System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
+
+                blockchain.get(0).addTransaction(transaction);
+                messagesreceivedLeader++;
             }
 
-            System.out.println("[Node " + nodeId + "] Transaction Hash: " + transaction.toString());
-
-            blockchain.get(0).addTransaction(transaction);
-            bec.propose("Tx1");
+            Thread.sleep(10000);
+            bec.propose("Tx1-Tx2");
 
             // Leader collects responses from non-leaders
             System.out.println("[Node " + nodeId + "] Collecting responses from non-leaders...");
@@ -135,9 +145,16 @@ public class NodeBFT {
             String message = apl.receiveMessage();
             if (message != null) {
                 System.out.println("[Node " + nodeId + "] Received message: " + message);
-                String[] parts = message.split(",");
-                String type = parts[0];
-
+                String type = null;
+                String[] parts = null;
+                if(message.equals("READ")){
+                    type = "READ";
+                }else{
+                    parts = message.split(",");
+                    System.out.println("[Node " + nodeId + "] Message parts: " + parts.length);
+                    type = parts[0];
+                }
+                
                 switch (type) {
                     case "READ" -> {
                         if (!isLeader) {
@@ -159,7 +176,6 @@ public class NodeBFT {
                         System.out.println("[Node " + nodeId + "] Handling ACCEPT message...");
                         bec.handleAcceptMessage(Integer.parseInt(parts[1]), parts[2]);
                         List<Transaction> transactions = blockchain.get(0).getTransactions();
-                        ;
                         //mudar para realizar a ordem
                         for (Transaction transaction : transactions) {
                             System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
@@ -183,27 +199,38 @@ public class NodeBFT {
         System.out.println("[Node " + nodeId + "] Consensus reached.");
 
         if(isLeader){
-            // while(messagesreceived != nuberofClients){
             System.out.println("[Node " + nodeId + "] Leader is here!!!!!!!!");
-            String message = apl.receiveMessage();
-            System.out.println("[Node " + nodeId + "] Received message: " + message + "from client");
-            String[] parts = message.split(",");
             Block block = blockchain.get(0);
             List<Transaction> transactions = block.getTransactions();
 
             for (Transaction transaction : transactions) {
                 System.out.println("[Node " + nodeId + "] Handling transaction: " + transaction.toString());
                 if(transaction.verifySignature(crypto.getPublicKey())){
-                    contract.transfer(transaction.getSenderAddress(), transaction.getReceiverAddress(), transaction.getAmount()); //executar transação nodes non-leader
+                    contract.transfer(transaction.getSenderAddress(), transaction.getReceiverAddress(), transaction.getAmount()); 
                 } 
             }
 
-            for (Transaction transaction : transactions) {              //Avisa se a transação está na blockchain
-                if(parts[0].equals("QUERY")&&transaction.getHash().equals(parts[1])){
-                    apl.sendMessage("TRUE",InetAddress.getLocalHost(),CLIENTPORT);          
-                } else {
-                    apl.sendMessage("FALSE",InetAddress.getLocalHost(),CLIENTPORT);
+            int messagestosend = 0;
+            while(messagestosend != numberofClients){
+                String message = apl.receiveMessage();
+                System.out.println("[Node " + nodeId + "] Received message: " + message + "from client");
+                String[] parts = message.split(",");
+                int Clientport = (parts[1].equals("5"))?CLIENTPORT:CLIENTPORT2;
+            
+                boolean isfalse = false;
+                for (Transaction transaction : transactions) {              //Avisa se a transação está na blockchain
+                    if(parts[0].equals("QUERY")&&transaction.getHash().equals(parts[2])){
+                        apl.sendMessage("TRUE",InetAddress.getLocalHost(),Clientport);
+                        isfalse = false;
+                        break;          
+                    } 
+                    isfalse = true;
                 }
+
+                if(isfalse){
+                    apl.sendMessage("FALSE",InetAddress.getLocalHost(),Clientport);
+                }
+                messagestosend++;
             }
         }
 

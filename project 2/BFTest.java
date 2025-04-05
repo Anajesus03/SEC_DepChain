@@ -10,10 +10,13 @@ public class BFTest {
         int f = 1; // Number of faulty nodes
         int LEADERPORT = 5000; // Base port for nodes
         Contract contract = new Contract();
-        String clientAddress = contract.getReceiverAddress(); 
-        String receiverAddress = contract.getClientAddress(); 
+        String clientAddress = contract.getClientAddress(); 
+        String receiverAddress = contract.getReceiverAddress();
+        String ISTcoinaddress = contract.getISTCoinContractAddress(); 
         String amount = "0x100";
-        String data = contract.getData(receiverAddress, amount);
+        String amount2 = "0x200";
+        String data = contract.getData(ISTcoinaddress, amount);
+        String data2 = contract.getData(clientAddress, amount2);
 
         // Shutdown hook for clean process termination
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -29,9 +32,11 @@ public class BFTest {
 
         // Start clients after nodes are up
         Thread.sleep(2000);
-        startClient(1, N, clientAddress, receiverAddress, amount, data);
+        startClient(5, N, clientAddress, ISTcoinaddress, amount, data);
+        Thread.sleep(5000);
+        startClient(6, N, receiverAddress, clientAddress, amount2, data2);
 
-        System.out.println("Started " + N + " nodes and 1 clients. System running...");
+        System.out.println("Started " + N + " nodes and 2 clients. System running...");
         Thread.sleep(30000); // Extended runtime for transaction processing
     }
 
