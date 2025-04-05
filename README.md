@@ -12,52 +12,36 @@ DepChain is a permissioned blockchain system designed to ensure high dependabili
 
 ## Project Structure
 ```
-SEC_DECHAIN/
-│── src/
-│   ├── main/java/
-│   │   ├── AuthenticatedPerfectLink.java
-│   │   ├── AuthenticatedPerfectLinkTest.java
-│   │   ├── Client.java
-│   │   ├── conditionalCollect.java
-│   │   ├── cryptoClass.java
-│   │   ├── KeyGeneratorUtil.java
-│   │   ├── LeaderBFT.java
-│   │   ├── networkClass.java
-│   │   ├── ServerBFT.java
-│   ├── test/java/
-│   │   ├── BFTTest.java
-│   │   ├── ConditionalCollectTest.java
-│── pom.xml
-│── README.md
+SEC_DepChain/
+└── project 2/
+|   ├── Contracts/
+│   |   ├── BlackList.sol
+│   |   └── ISTCoin.sol                
+│   │   
+│   ├── jars/                 # JARs you import
+│   │   └── *.jar
+|   |
+│   ├── AuthenticatedPerfectLink.java
+│   ├── BFTests.java
+│   ├── Block.java
+│   ├── ByzantineEpochConsensus.java
+│   ├── ClientBFT.java
+│   ├── conditionalCollect.java
+│   ├── Contract.java
+│   ├── cryptoClass.java
+│   ├── genesis.json
+│   ├── ISTCoin_Tests.java
+│   ├── networkClass.java
+│   ├── NodeBFT.java
+│   └── Transaction.java
+└── project 1/
+|   └── Project1 Logic.
+├── README.md
 ```
 
 ## Prerequisites
 Ensure you have the following installed before running the project:
 - **Java 17**
-- **Apache Maven** (latest version recommended)
-
-## Building the Project
-To compile the project, use the following Maven command:
-```sh
-mvn clean compile
-```
-
-## Running the Tests
-This project includes unit tests written with JUnit 5, BFTTest.java and ConditionalCollectTest.java Run them using:
-```sh
-mvn test
-```
-To run AuthenticatedPerfectLinkTest simply go to the folder of src/main/java and run the commands:
-
-```sh
-javac AuthenticatedPerfectLinkTest.java 
-```
-
-followed by:
-
-```sh
-java AuthenticatedPerfectLinkTest.java 
-```
 
 ## Dependencies
 The project uses the following dependencies:
@@ -65,5 +49,8 @@ The project uses the following dependencies:
 - **Maven Compiler Plugin** for Java 17 compilation
 
 ## Project 2
-- Compilar Main:javac -cp ".:/home/rodrigo/Documents/Faculdade/SEC/lab/lab2/jars/*" Main.java
-- Correr Main: java -cp ".:/home/rodrigo/Documents/Faculdade/SEC/lab/lab2/jars/*" Main
+- Compile Code: javac -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" *.java 
+
+- Execute BFTest: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" BFTest  #(Inside BFTest when creating processes for NodeBFT, you have to put the path of jars in line 81.)
+
+- Execute ISTCoin_Tests: java -cp ".:<Path_to_File>/SEC_DepChain/project 2/jars/*" ISTCoin_Tests
