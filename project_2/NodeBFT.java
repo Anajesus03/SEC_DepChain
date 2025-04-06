@@ -261,12 +261,11 @@ public class NodeBFT {
         Block block = blockchain.get(0);
         List<Transaction> transactions = block.getTransactions();
     
-        // Make sure output directory exists
         File dir = new File("Transaction");
         if (!dir.exists()) {
             boolean created = dir.mkdirs();
             if (!created) {
-                System.err.println("❌ Failed to create Transaction/ directory.");
+                System.err.println("Failed to create Transaction/ directory.");
                 return;
             }
         }
@@ -292,9 +291,9 @@ public class NodeBFT {
     
         try (FileWriter writer = new FileWriter(filename)) {
             gson.toJson(allTransactions, writer);
-            System.out.println("✅ Created " + filename);
+            System.out.println("Created " + filename);
         } catch (IOException e) {
-            System.err.println("❌ Failed to write " + filename);
+            System.err.println("Failed to write " + filename);
             e.printStackTrace();
         }
     }
