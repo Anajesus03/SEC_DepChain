@@ -301,4 +301,9 @@ public class Contract {
             }
         }
     }
+
+    public static String getBalance(Address address) {
+        MutableAccount account = (MutableAccount) simpleWorld.get(address);
+        return account.getBalance().toString();
+    }
 }

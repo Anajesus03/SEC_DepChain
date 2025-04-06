@@ -3,6 +3,12 @@ import java.util.*;
 import org.hyperledger.besu.datatypes.Address;
 import java.util.function.Predicate;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class NodeBFT {
     private final int nodeId;
@@ -47,6 +53,8 @@ public class NodeBFT {
         handlePostConsensus();
 
         Thread.sleep(10000);
+
+        createJsons();
         bec.abort();
     }
 
@@ -248,6 +256,49 @@ public class NodeBFT {
         NodeBFT node = new NodeBFT(nodeId, isLeader, port, N, f);
         node.start();
     }
+
+    public void createJsons() {
+        Block block = blockchain.get(0);
+        List<Transaction> transactions = block.getTransactions();
+    
+        // Make sure output directory exists
+        File dir = new File("Transaction");
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs();
+            if (!created) {
+                System.err.println("❌ Failed to create Transaction/ directory.");
+                return;
+            }
+        }
+    
+        Map<String, Map<String, String>> allTransactions = new LinkedHashMap<>();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    
+        for (int i = 0; i < transactions.size(); i++) {
+            Transaction tx = transactions.get(i);
+    
+            Map<String, String> txData = new LinkedHashMap<>();
+            txData.put("sender", tx.getSender());
+            txData.put("senderBalance", String.valueOf(contract.getBalance(tx.getSenderAddress())));
+            txData.put("receiver", tx.getReceiver());
+            txData.put("receiverBalance", String.valueOf(contract.getBalance(tx.getReceiverAddress())));
+            txData.put("amount", tx.getAmount());
+            txData.put("data", tx.getData());
+    
+            allTransactions.put("Transaction " + i, txData);
+        }
+    
+        String filename = "Transaction/all_transactions.json";
+    
+        try (FileWriter writer = new FileWriter(filename)) {
+            gson.toJson(allTransactions, writer);
+            System.out.println("✅ Created " + filename);
+        } catch (IOException e) {
+            System.err.println("❌ Failed to write " + filename);
+            e.printStackTrace();
+        }
+    }
+    
 
     public void choiceFinder(String choice) {
         switch (choice) {

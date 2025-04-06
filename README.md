@@ -13,13 +13,16 @@ DepChain is a permissioned blockchain system designed to ensure high dependabili
 ## Project Structure
 ```
 SEC_DepChain/
-└── project 2/
+└── project_2/
 |   ├── Contracts/
 │   |   ├── BlackList.sol
 │   |   └── ISTCoin.sol                
 │   │   
 │   ├── jars/                 # JARs you import
 │   │   └── *.jar
+|   |
+|   |── Transaction/                 # Transactions occured
+│   │   └── all_transactions.json
 |   |
 │   ├── AuthenticatedPerfectLink.java
 │   ├── BFTests.java
@@ -34,7 +37,7 @@ SEC_DepChain/
 │   ├── networkClass.java
 │   ├── NodeBFT.java
 │   └── Transaction.java
-└── project 1/
+└── project_1/
 |   └── Project1 Logic.
 ├── README.md
 ```

@@ -71,6 +71,10 @@ public class Transaction {
         return receiver;
     }
 
+    public String getData() {
+        return data;
+    }
+
     public Address getReceiverAddress() {
         return Address.fromHexString(receiver);
     }
